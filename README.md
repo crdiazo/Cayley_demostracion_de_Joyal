@@ -156,10 +156,7 @@ El programa:
 
 1. Convierte cada letra a su valor numérico (A=0, …, espacio=29).  
 2. Rellena con caracteres de control para ajustar múltiplos de 3.  
-3. Encripta usando  
-   $$
-   C = K \cdot P \pmod{30}
-   $$
+3. Encripta usando $C = K \cdot P \pmod{30}$
 4. Devuelve el texto cifrado en pantalla.  
 5. Permite aplicar la inversa de $K$ para recuperar el mensaje.
 
