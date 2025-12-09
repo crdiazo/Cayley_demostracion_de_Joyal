@@ -275,7 +275,7 @@ class NSelectionScreen:
         self.n_input.draw(surface)
 
         # Botón continuar
-        self.confirm_btn.rect.y = 490
+        self.confirm_btn.rect.y = 455
         self.confirm_btn.draw(surface)
 
         # Error
@@ -1565,3 +1565,4 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
+
