@@ -1272,43 +1272,43 @@ class FunctionToTreeMode:
     # -----------------------------
     # Construye el árbol a partir de la función (CONSTRUIR botón)
     # -----------------------------
-def construct_tree_from_function(self):
-    if not self.function:
-        self.error_message = "Primero envíe una función válida."
-        return False
+    def construct_tree_from_function(self):
+        if not self.function:
+            self.error_message = "Primero envíe una función válida."
+            return False
 
-    if not hasattr(self, "_cycles_list"):
-        self._detect_cycles_ordered()
+        if not hasattr(self, "_cycles_list"):
+            self._detect_cycles_ordered()
 
-    self.tree_edges = []
-    self.spine_edges = []
+        self.tree_edges = []
+        self.spine_edges = []
 
-    # construir vértebra como camino
-    for cyc in self._cycles_list:
-        if len(cyc) > 1:
-            for i in range(len(cyc) - 1):
-                a = cyc[i]
-                b = cyc[i + 1]
-                if (a, b) not in self.spine_edges and (b, a) not in self.spine_edges:
-                    self.spine_edges.append((a, b))
-                if (a, b) not in self.tree_edges and (b, a) not in self.tree_edges:
-                    self.tree_edges.append((a, b))
+        # construir vértebra como camino
+        for cyc in self._cycles_list:
+            if len(cyc) > 1:
+                for i in range(len(cyc) - 1):
+                    a = cyc[i]
+                    b = cyc[i + 1]
+                    if (a, b) not in self.spine_edges and (b, a) not in self.spine_edges:
+                        self.spine_edges.append((a, b))
+                    if (a, b) not in self.tree_edges and (b, a) not in self.tree_edges:
+                        self.tree_edges.append((a, b))
 
-    # ramas v → f(v)
-    for v in self.vertices_not_in_cycles:
-        fv = self.function[v]
-        if 0 <= fv < n:
-            if (v, fv) not in self.tree_edges and (fv, v) not in self.tree_edges:
-                self.tree_edges.append((v, fv))
+        # ramas v → f(v)
+        for v in self.vertices_not_in_cycles:
+            fv = self.function[v]
+            if 0 <= fv < n:
+                if (v, fv) not in self.tree_edges and (fv, v) not in self.tree_edges:
+                    self.tree_edges.append((v, fv))
 
-    # *** CORRECCIÓN CLAVE ***
-    # eliminar las aristas de la vértebra del conjunto de ramas
-    self.tree_edges = [e for e in self.tree_edges 
-                       if e not in self.spine_edges and (e[1], e[0]) not in self.spine_edges]
+        # *** CORRECCIÓN CLAVE ***
+        # eliminar las aristas de la vértebra del conjunto de ramas
+        self.tree_edges = [e for e in self.tree_edges 
+                        if e not in self.spine_edges and (e[1], e[0]) not in self.spine_edges]
 
-    self.stage = "tree"
-    self.error_message = ""
-    return True
+        self.stage = "tree"
+        self.error_message = ""
+        return True
 
     # -----------------------------
     # Devuelve notación de permutación (ciclos)
