@@ -273,11 +273,11 @@ class NSelectionScreen:
             surface.blit(text, (WIDTH//2 - text.get_width()//2, base_y + i * 28))
 
         # Input (más abajo, para despegarlo)
-        self.n_input.rect.y = 405   # ← BAJÉ el input 15px
+        self.n_input.rect.y = 435
         self.n_input.draw(surface)
 
         # Botón continuar (también baja un poco)
-        self.confirm_btn.rect.y = 490  # ← BAJÉ 20px
+        self.confirm_btn.rect.y = 525
         self.confirm_btn.draw(surface)
 
         # Error
