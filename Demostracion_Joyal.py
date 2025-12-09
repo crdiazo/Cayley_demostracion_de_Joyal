@@ -271,7 +271,7 @@ class NSelectionScreen:
             surface.blit(text, (WIDTH//2 - text.get_width()//2, base_y + i * 28))
 
         # Label principal
-        label1 = FONT_REGULAR_BOLD.render("NÚMERO DE VÉRTICES (n ≥ 2)", True, COLORS['dark'])
+        label1 = FONT_BOLD.render("NÚMERO DE VÉRTICES (n ≥ 2)", True, COLORS['dark'])
         surface.blit(label1, (WIDTH//2 - label1.get_width()//2, 365))
 
         # Recomendación debajo
