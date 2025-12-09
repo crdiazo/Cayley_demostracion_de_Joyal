@@ -1141,22 +1141,38 @@ class FunctionToTreeMode:
         # calcular posiciones
         self.compute_positions()
 
-        # dibujar ramas / aristas normales
+        # función para ajustar línea a borde del nodo
+        def line_to_border(a, b):
+            (x1, y1) = self.vertex_pos[a]
+            (x2, y2) = self.vertex_pos[b]
+            dx = x2 - x1
+            dy = y2 - y1
+            L = math.hypot(dx, dy)
+            if L == 0:
+                return (x1, y1), (x2, y2)
+            # evitar que la línea entre al centro del nodo
+            start = (x1 + dx/L * vertice_rad, y1 + dy/L * vertice_rad)
+            end   = (x2 - dx/L * vertice_rad, y2 - dy/L * vertice_rad)
+            return start, end
+
+        # dibujar aristas normales
         for a, b in self.tree_edges:
-            pygame.draw.line(surface, COLORS['edge'], self.vertex_pos[a], self.vertex_pos[b], 3)
+            start, end = line_to_border(a, b)
+            pygame.draw.line(surface, COLORS['edge'], start, end, 3)
 
-        # vértebra (línea más gruesa)
+        # dibujar aristas de la vértebra MÁS gruesas y visibles
         for a, b in self.spine_edges:
-            pygame.draw.line(surface, COLORS['spine'], self.vertex_pos[a], self.vertex_pos[b], 6)
+            start, end = line_to_border(a, b)
+            pygame.draw.line(surface, COLORS['spine'], start, end, 8)
 
-        # flechas orientadas para vértices no en ciclo (mostrar dirección a f(v))
+        # flechas orientadas para vértices que no están en ciclos
         for i in self.vertices_not_in_cycles:
             fv = self.function[i]
-            if fv is None: 
+            if fv is None:
                 continue
             self.draw_arrow(surface, self.vertex_pos[i], self.vertex_pos[fv], COLORS['arrow'])
 
-        # vértices encima (spine coloreada)
+        # dibujar nodos encima
         for i, pos in enumerate(self.vertex_pos):
             col = COLORS['spine'] if i in self.vertices_in_cycles else COLORS['vertex']
             pygame.draw.circle(surface, col, pos, vertice_rad)
