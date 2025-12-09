@@ -259,27 +259,21 @@ class NSelectionScreen:
         surface.blit(icon_txt, (icon_rect.centerx - icon_txt.get_width()//2,
                                 icon_rect.centery - icon_txt.get_height()//2))
 
-        # Instrucciones principales
+        # Instrucciones (más separación)
         instructions = [
             "Ingrese el número de vértices (n).",
-            "Cayley: número de árboles = n^(n−2)."
+            "Cayley: número de árboles = n^(n−2).",
+            "",
+            "Valores recomendados: 3 a 15 vértices"
         ]
 
-        base_y = 310
+        base_y = 310  # ← SUBÍ el texto 10px
         for i, line in enumerate(instructions):
             text = FONT_REGULAR.render(line, True, COLORS['dark'])
             surface.blit(text, (WIDTH//2 - text.get_width()//2, base_y + i * 28))
 
-        # Label principal
-        label1 = FONT_BOLD.render("NÚMERO DE VÉRTICES (n ≥ 2)", True, COLORS['dark'])
-        surface.blit(label1, (WIDTH//2 - label1.get_width()//2, 365))
-
-        # Recomendación debajo
-        label2 = FONT_REGULAR.render("Valores recomendados: 3 a 15 vértices", True, COLORS['dark'])
-        surface.blit(label2, (WIDTH//2 - label2.get_width()//2, 395))
-
-        # Input
-        self.n_input.rect.y = 430
+        # Input (más abajo, para despegarlo)
+        self.n_input.rect.y = 435
         self.n_input.draw(surface)
 
         # Botón continuar (también baja un poco)
