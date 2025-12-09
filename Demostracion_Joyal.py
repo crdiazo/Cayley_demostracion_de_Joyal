@@ -353,17 +353,17 @@ class MainMenuScreen:
         self.title = f"DEMOSTRACIÓN DE JOYAL - n = {n}"
 
         # Panel izquierdo (botones + texto)
-        self.left_x = 80
-        self.left_width = 420
+        self.left_x = 60
+        self.left_width = 500
 
         # Botones principales
-        self.btn_mode1 = ProfessionalButton(self.left_x + 40, 360, 300, 80,
+        self.btn_mode1 = ProfessionalButton(self.left_x + 100, 360, 300, 80,
                                             "MODO 1\nÁRBOL → FUNCIÓN", COLORS['info'])
 
-        self.btn_mode2 = ProfessionalButton(self.left_x + 40, 460, 300, 80,
+        self.btn_mode2 = ProfessionalButton(self.left_x + 100, 460, 300, 80,
                                             "MODO 2\nFUNCIÓN → ÁRBOL", COLORS['success'])
 
-        self.btn_reset = ProfessionalButton(self.left_x + 90, 570, 200, 60,
+        self.btn_reset = ProfessionalButton(self.left_x + 150, 570, 200, 60,
                                             "REINICIAR", COLORS['warning'])
 
         self.btn_back = ProfessionalButton(30, 30, 120, 40, "← VOLVER", COLORS['gray'])
