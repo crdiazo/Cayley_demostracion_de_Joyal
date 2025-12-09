@@ -497,8 +497,8 @@ class TreeToFunctionMode:
         button_height = 48
         y = HEIGHT - 90
 
-        self.btn_prev = ProfessionalButton(180, y, button_width, button_height, "← Atrás", COLORS["gray"])
-        self.btn_next = ProfessionalButton(WIDTH - button_width - 68, y, button_width, button_height, "Continuar →", COLORS["success"])
+        self.btn_prev = ProfessionalButton(220, y, button_width, button_height, "← Atrás", COLORS["gray"])
+        self.btn_next = ProfessionalButton(WIDTH - button_width - 65, y, button_width, button_height, "Continuar →", COLORS["success"])
 
 
         # Panel izquierdo
@@ -742,7 +742,7 @@ class TreeToFunctionMode:
     def draw_step_indicator(self, surface):
         steps = ["1. Construir", "2. Inicio", "3. Fin", "4. Listo"]
         # Ubicar indicador ligeramente por encima de los botones inferiores
-        x = WIDTH // 2 - 105
+        x = WIDTH // 2 - 100
         y = HEIGHT - 185
 
         for i in range(4):
