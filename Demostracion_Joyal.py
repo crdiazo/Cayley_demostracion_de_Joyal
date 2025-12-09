@@ -492,13 +492,14 @@ class TreeToFunctionMode:
         self.btn_back = ProfessionalButton(30, 25, 130, 45, "← MENÚ", COLORS["gray"])
         self.btn_reset = ProfessionalButton(WIDTH - 170, 25, 140, 45, "REINICIAR", COLORS["warning"])
 
-        # Botones inferiores mejorados: ahora centrados y con espacio uniforme
-        button_width = 160
-        gap = 24
-        y = HEIGHT - 80
-        center_x = WIDTH // 2
-        self.btn_prev = ProfessionalButton(center_x - button_width - gap//2, y, button_width, 44, "← Atrás", COLORS["gray"])
-        self.btn_next = ProfessionalButton(center_x + gap//2, y, button_width, 44, "Continuar →", COLORS["success"])
+        # Botones inferiores — estilo final (A la izquierda y derecha)
+        button_width = 170
+        button_height = 48
+        y = HEIGHT - 78
+
+        self.btn_prev = ProfessionalButton(70, y, button_width, button_height, "← Atrás", COLORS["gray"])
+        self.btn_next = ProfessionalButton(WIDTH - button_width - 70, y, button_width, button_height, "Continuar →", COLORS["success"])
+
 
         # Panel izquierdo
         self.info_panel = pygame.Rect(40, 120, 360, HEIGHT - 220)
@@ -742,7 +743,7 @@ class TreeToFunctionMode:
         steps = ["1. Construir", "2. Inicio", "3. Fin", "4. Listo"]
         # Ubicar indicador ligeramente por encima de los botones inferiores
         x = WIDTH // 2 - 300
-        y = HEIGHT - 140
+        y = HEIGHT - 155
 
         for i in range(4):
             color = COLORS["gray"]
