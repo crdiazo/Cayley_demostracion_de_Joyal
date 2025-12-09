@@ -92,76 +92,28 @@ class ProfessionalButton:
         self.shadow_offset = 3
         self.border_radius = 8
         
-def draw(self, surface):
-    # Fondo general
-    surface.fill(COLORS['background'])
-
-    # Encabezado
-    header_rect = pygame.Rect(0, 0, WIDTH, 130)
-    pygame.draw.rect(surface, COLORS['header'], header_rect)
-
-    # Título
-    title_surf = FONT_TITLE.render(self.title, True, COLORS['white'])
-    surface.blit(title_surf, (WIDTH//2 - title_surf.get_width()//2, 30))
-
-    # Subtítulo
-    subtitle_surf = FONT_SUBTITLE.render(self.subtitle, True, COLORS['light'])
-    surface.blit(subtitle_surf, (WIDTH//2 - subtitle_surf.get_width()//2, 80))
-
-    # Panel central (más grande y con más aire)
-    panel_rect = pygame.Rect(WIDTH//2 - 320, 170, 640, 420)
-    pygame.draw.rect(surface, COLORS['white'], panel_rect, border_radius=15)
-    pygame.draw.rect(surface, COLORS['accent'], panel_rect, 3, border_radius=15)
-
-    # Icono (bajado y centrado)
-    icon_rect = pygame.Rect(WIDTH//2 - 45, 190, 90, 90)
-    pygame.draw.circle(surface, COLORS['info'], icon_rect.center, 45)
-    icon_txt = FONT_TITLE.render("T", True, COLORS['white'])
-    surface.blit(icon_txt, (icon_rect.centerx - icon_txt.get_width()//2,
-                            icon_rect.centery - icon_txt.get_height()//2))
-
-    # Instrucciones (más separación)
-    instructions = [
-        "Ingrese el número de vértices (n).",
-        "Cayley: número de árboles = n^(n−2).",
-        "",
-        "Valores recomendados: 3 a 15 vértices"
-    ]
-
-    base_y = 300
-    for i, line in enumerate(instructions):
-        text = FONT_REGULAR.render(line, True, COLORS['dark'])
-        surface.blit(text, (WIDTH//2 - text.get_width()//2, base_y + i * 28))
-
-    # Input (bajado)
-    self.n_input.rect.y = 390
-    self.n_input.draw(surface)
-
-    # Botón continuar (aún más abajo)
-    self.confirm_btn.rect.y = 470
-    self.confirm_btn.draw(surface)
-
-    # Error
-    if self.error_message:
-        err = FONT_SMALL.render(self.error_message, True, COLORS['danger'])
-        surface.blit(err, (WIDTH//2 - err.get_width()//2, 520))
-
-    # Resultado fórmula (bien separado)
-    try:
-        temp_n = int(self.n_input.get_value() or "6")
-        if 2 <= temp_n <= 20:
-            result = FONT_BOLD.render(
-                f"n = {temp_n}: {temp_n}^({temp_n}-2) = {temp_n**(temp_n-2):,} árboles",
-                True, COLORS['success']
-            )
-            surface.blit(result, (WIDTH//2 - result.get_width()//2, 560))
-            self.selected_n = temp_n
-    except:
-        pass
-
-    # Botón info
-    self.info_btn.draw(surface)
-
+    def draw(self, surface):
+        # Sombra
+        shadow_rect = self.rect.move(self.shadow_offset, self.shadow_offset)
+        pygame.draw.rect(surface, (220, 220, 220), shadow_rect, border_radius=self.border_radius)
+        
+        # Fondo del botón
+        pygame.draw.rect(surface, self.current_color, self.rect, border_radius=self.border_radius)
+        
+        # Borde
+        border_color = COLORS['white'] if self.is_hovered else COLORS['accent']
+        pygame.draw.rect(surface, border_color, self.rect, 2, border_radius=self.border_radius)
+        
+        # Texto
+        text_surf = FONT_BOLD.render(self.text, True, COLORS['white'])
+        text_rect = text_surf.get_rect(center=self.rect.center)
+        surface.blit(text_surf, text_rect)
+        
+        # Efecto de hover
+        if self.is_hovered:
+            overlay = pygame.Surface((self.rect.width, self.rect.height), pygame.SRCALPHA)
+            overlay.fill((255, 255, 255, 30))
+            surface.blit(overlay, self.rect)
     
     def update(self, mouse_pos):
         self.is_hovered = self.rect.collidepoint(mouse_pos)
@@ -279,77 +231,75 @@ class NSelectionScreen:
         self.error_message = ""
         self.selected_n = 6
         
-    def draw(self, surface):
-        # LIMPIAR TODA LA PANTALLA PRIMERO
-        surface.fill(COLORS['background'])
-        
-        # Encabezado
-        header_rect = pygame.Rect(0, 0, WIDTH, 120)
-        pygame.draw.rect(surface, COLORS['header'], header_rect)
-        
-        # Título principal
-        title_surf = FONT_TITLE.render(self.title, True, COLORS['white'])
-        title_shadow = FONT_TITLE.render(self.title, True, (20, 40, 80))
-        surface.blit(title_shadow, (WIDTH//2 - title_surf.get_width()//2 + 2, 42))
-        surface.blit(title_surf, (WIDTH//2 - title_surf.get_width()//2, 40))
-        
-        # Subtítulo
-        subtitle_surf = FONT_SUBTITLE.render(self.subtitle, True, COLORS['light'])
-        surface.blit(subtitle_surf, (WIDTH//2 - subtitle_surf.get_width()//2, 100))
-        
-        # Panel central
-        panel_rect = pygame.Rect(WIDTH//2 - 300, 200, 600, 350)
-        pygame.draw.rect(surface, COLORS['white'], panel_rect, border_radius=15)
-        pygame.draw.rect(surface, COLORS['accent'], panel_rect, 3, border_radius=15)
-        
-        # Icono decorativo
-        icon_rect = pygame.Rect(WIDTH//2 - 40, 220, 80, 80)
-        pygame.draw.circle(surface, COLORS['info'], icon_rect.center, 40)
-        tree_icon = FONT_TITLE.render("T", True, COLORS['white'])
-        surface.blit(tree_icon, (icon_rect.centerx - tree_icon.get_width()//2, 
-                                icon_rect.centery - tree_icon.get_height()//2))
-        
-        # Instrucciones
-        instructions = [
-            "Ingrese el número de vértices (n) para el árbol.",
-            "La fórmula de Cayley establece que el número de",
-            f"árboles etiquetados con n vértices es n^(n-2).",
-            "",
-            "Valores recomendados: 3 a 15 vértices"
-        ]
-        
-        for i, line in enumerate(instructions):
-            line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
-            surface.blit(line_surf, (WIDTH//2 - line_surf.get_width()//2, 320 + i * 30))
-        
-        # Campo de entrada
-        self.n_input.draw(surface)
-        
-        # Mensaje de error
-        if self.error_message:
-            error_bg = pygame.Rect(WIDTH//2 - 250, 420, 500, 40)
-            pygame.draw.rect(surface, (255, 235, 235), error_bg, border_radius=8)
-            pygame.draw.rect(surface, COLORS['danger'], error_bg, 2, border_radius=8)
-            
-            error_surf = FONT_SMALL.render(self.error_message, True, COLORS['danger'])
-            surface.blit(error_surf, (WIDTH//2 - error_surf.get_width()//2, 430))
-        
-        # Botón confirmar
-        self.confirm_btn.draw(surface)
-        
-        # Botón de información
-        self.info_btn.draw(surface)
-        
-        # Mostrar cálculo si el número es válido
-        try:
-            temp_n = int(self.n_input.get_value() or "6")
-            if 2 <= temp_n <= 20:
-                formula = FONT_BOLD.render(f"n = {temp_n}: {temp_n}^({temp_n}-2) = {temp_n**(temp_n-2):,} árboles", 
-                                          True, COLORS['success'])
-                surface.blit(formula, (WIDTH//2 - formula.get_width()//2, 520))
-                self.selected_n = temp_n
-        except:
-            pass
+def draw(self, surface):
+    # Fondo general
+    surface.fill(COLORS['background'])
+
+    # Encabezado
+    header_rect = pygame.Rect(0, 0, WIDTH, 130)
+    pygame.draw.rect(surface, COLORS['header'], header_rect)
+
+    # Título
+    title_surf = FONT_TITLE.render(self.title, True, COLORS['white'])
+    surface.blit(title_surf, (WIDTH//2 - title_surf.get_width()//2, 30))
+
+    # Subtítulo
+    subtitle_surf = FONT_SUBTITLE.render(self.subtitle, True, COLORS['light'])
+    surface.blit(subtitle_surf, (WIDTH//2 - subtitle_surf.get_width()//2, 80))
+
+    # Panel central (más grande y con más aire)
+    panel_rect = pygame.Rect(WIDTH//2 - 320, 170, 640, 420)
+    pygame.draw.rect(surface, COLORS['white'], panel_rect, border_radius=15)
+    pygame.draw.rect(surface, COLORS['accent'], panel_rect, 3, border_radius=15)
+
+    # Icono (bajado y centrado)
+    icon_rect = pygame.Rect(WIDTH//2 - 45, 190, 90, 90)
+    pygame.draw.circle(surface, COLORS['info'], icon_rect.center, 45)
+    icon_txt = FONT_TITLE.render("T", True, COLORS['white'])
+    surface.blit(icon_txt, (icon_rect.centerx - icon_txt.get_width()//2,
+                            icon_rect.centery - icon_txt.get_height()//2))
+
+    # Instrucciones (más separación)
+    instructions = [
+        "Ingrese el número de vértices (n).",
+        "Cayley: número de árboles = n^(n−2).",
+        "",
+        "Valores recomendados: 3 a 15 vértices"
+    ]
+
+    base_y = 300
+    for i, line in enumerate(instructions):
+        text = FONT_REGULAR.render(line, True, COLORS['dark'])
+        surface.blit(text, (WIDTH//2 - text.get_width()//2, base_y + i * 28))
+
+    # Input (bajado)
+    self.n_input.rect.y = 390
+    self.n_input.draw(surface)
+
+    # Botón continuar (aún más abajo)
+    self.confirm_btn.rect.y = 470
+    self.confirm_btn.draw(surface)
+
+    # Error
+    if self.error_message:
+        err = FONT_SMALL.render(self.error_message, True, COLORS['danger'])
+        surface.blit(err, (WIDTH//2 - err.get_width()//2, 520))
+
+    # Resultado fórmula (bien separado)
+    try:
+        temp_n = int(self.n_input.get_value() or "6")
+        if 2 <= temp_n <= 20:
+            result = FONT_BOLD.render(
+                f"n = {temp_n}: {temp_n}^({temp_n}-2) = {temp_n**(temp_n-2):,} árboles",
+                True, COLORS['success']
+            )
+            surface.blit(result, (WIDTH//2 - result.get_width()//2, 560))
+            self.selected_n = temp_n
+    except:
+        pass
+
+    # Botón info
+    self.info_btn.draw(surface)
     
     def update(self, mouse_pos, dt):
         self.n_input.update(dt)
