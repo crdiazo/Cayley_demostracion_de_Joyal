@@ -390,9 +390,9 @@ class MainMenuScreen:
         surface.blit(formula, (WIDTH//2 - formula.get_width()//2, 90))
 
         # PANEL IZQUIERDO (texto + botones)
-        left_panel = pygame.Rect(self.left_x - 20, 180, self.left_width, 520)
-        pygame.draw.rect(surface, COLORS['white'], left_panel, border_radius=20)
-        pygame.draw.rect(surface, COLORS['accent'], left_panel, 3, border_radius=20)
+        left_panel = pygame.Rect(self.left_x - 25, 180, self.left_width, 520)
+        pygame.draw.rect(surface, COLORS['white'], left_panel, border_radius=25)
+        pygame.draw.rect(surface, COLORS['accent'], left_panel, 3, border_radius=25)
 
         # Texto explicativo
         desc_lines = [
@@ -403,7 +403,7 @@ class MainMenuScreen:
             "Seleccione un modo de operación:"
         ]
 
-        base_y = 230
+        base_y = 210
         for i, line in enumerate(desc_lines):
             line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
             surface.blit(line_surf,
@@ -1571,4 +1571,3 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
-
