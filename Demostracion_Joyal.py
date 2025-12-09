@@ -742,7 +742,7 @@ class TreeToFunctionMode:
     def draw_step_indicator(self, surface):
         steps = ["1. Construir", "2. Inicio", "3. Fin", "4. Listo"]
         # Ubicar indicador ligeramente por encima de los botones inferiores
-        x = WIDTH // 2 - 145
+        x = WIDTH // 2 - 130
         y = HEIGHT - 185
 
         for i in range(4):
