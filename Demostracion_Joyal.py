@@ -495,7 +495,7 @@ class TreeToFunctionMode:
         # Botones inferiores — estilo final (A la izquierda y derecha)
         button_width = 170
         button_height = 48
-        y = HEIGHT - 90
+        y = HEIGHT - 120
 
         self.btn_prev = ProfessionalButton(440, y, button_width, button_height, "← Atrás", COLORS["gray"])
         self.btn_next = ProfessionalButton(WIDTH - button_width - 50, y, button_width, button_height, "Continuar →", COLORS["success"])
