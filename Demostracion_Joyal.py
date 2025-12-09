@@ -1272,59 +1272,43 @@ class FunctionToTreeMode:
     # -----------------------------
     # Construye el árbol a partir de la función (CONSTRUIR botón)
     # -----------------------------
-    def construct_tree_from_function(self):
-        """
-        Construye el árbol a partir de la función f (self.function).
-        - Para cada ciclo de longitud > 1: conectamos los vértices en orden *como camino* (no cerramos el ciclo),
-        de modo que formen la VÉRTEBRA (aristas spine_edges).
-        - Para vértices no en ciclos: añadimos arista (v -> f(v)) como rama.
-        - Evitamos duplicados.
-        """
-        if not self.function:
-            self.error_message = "Primero envíe una función válida."
-            return False
+def construct_tree_from_function(self):
+    if not self.function:
+        self.error_message = "Primero envíe una función válida."
+        return False
 
-        if not hasattr(self, "_cycles_list"):
-            self._detect_cycles_ordered()
+    if not hasattr(self, "_cycles_list"):
+        self._detect_cycles_ordered()
 
-        self.tree_edges = []
-        self.spine_edges = []
+    self.tree_edges = []
+    self.spine_edges = []
 
-        # --- Construir la vértebra (path) a partir de cada ciclo ---
-        for cyc in self._cycles_list:
-            if len(cyc) > 1:
-                # conectar consecutivos sin cerrar el ciclo: c[0]-c[1], c[1]-c[2], ..., c[k-2]-c[k-1]
-                for i in range(len(cyc) - 1):
-                    a = cyc[i]
-                    b = cyc[i + 1]
-                    # añadir solo si no existe ya (evita duplicados inversos)
-                    if (a, b) not in self.tree_edges and (b, a) not in self.tree_edges:
-                        self.tree_edges.append((a, b))
-                    # spine_edges mantiene el orden de la vértebra (a,b)
-                    if (a, b) not in self.spine_edges and (b, a) not in self.spine_edges:
-                        self.spine_edges.append((a, b))
-            else:
-                # ciclo de longitud 1 (punto fijo): lo dejamos como vértice aislado en spine (sin arista)
-                pass
+    # construir vértebra como camino
+    for cyc in self._cycles_list:
+        if len(cyc) > 1:
+            for i in range(len(cyc) - 1):
+                a = cyc[i]
+                b = cyc[i + 1]
+                if (a, b) not in self.spine_edges and (b, a) not in self.spine_edges:
+                    self.spine_edges.append((a, b))
+                if (a, b) not in self.tree_edges and (b, a) not in self.tree_edges:
+                    self.tree_edges.append((a, b))
 
-        # --- Añadir ramas (v -> f(v)) para vértices no en ciclos ---
-        for v in self.vertices_not_in_cycles:
-            fv = self.function[v]
-            if 0 <= fv < n:
-                # Si la arista ya está como parte del spine o ya añadida como rama, evitamos duplicar.
-                if (v, fv) not in self.tree_edges and (fv, v) not in self.tree_edges:
-                    self.tree_edges.append((v, fv))
+    # ramas v → f(v)
+    for v in self.vertices_not_in_cycles:
+        fv = self.function[v]
+        if 0 <= fv < n:
+            if (v, fv) not in self.tree_edges and (fv, v) not in self.tree_edges:
+                self.tree_edges.append((v, fv))
 
-        # Opcional: ordenar spine_edges para mostrar la vértebra en orden (sobran si ya están en orden)
-        # no hacemos nada más aquí; la variable self.spine_edges contiene las aristas del path en orden local.
+    # *** CORRECCIÓN CLAVE ***
+    # eliminar las aristas de la vértebra del conjunto de ramas
+    self.tree_edges = [e for e in self.tree_edges 
+                       if e not in self.spine_edges and (e[1], e[0]) not in self.spine_edges]
 
-        self.stage = "tree"
-        self.error_message = ""
-        if self._debug:
-            print("construct_tree_from_function -> tree_edges:", [(a+1, b+1) for a, b in self.tree_edges])
-            print("spine_edges:", [(a+1, b+1) for a, b in self.spine_edges])
-        return True
-
+    self.stage = "tree"
+    self.error_message = ""
+    return True
 
     # -----------------------------
     # Devuelve notación de permutación (ciclos)
