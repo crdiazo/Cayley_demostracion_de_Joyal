@@ -408,7 +408,7 @@ class MainMenuScreen:
             line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
             surface.blit(line_surf,
                          (self.left_x + (self.left_width - line_surf.get_width()) // 2,
-                          base_y + i * 28))
+                          base_y + i * 30))
 
         # Botones
         self.btn_mode1.draw(surface)
@@ -1571,3 +1571,4 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
+
