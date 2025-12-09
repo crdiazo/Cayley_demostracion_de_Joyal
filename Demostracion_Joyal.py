@@ -403,7 +403,7 @@ class MainMenuScreen:
             "Seleccione un modo de operación:"
         ]
 
-        base_y = 210
+        base_y = 240
         for i, line in enumerate(desc_lines):
             line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
             surface.blit(line_surf,
@@ -1571,3 +1571,4 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
+
