@@ -403,7 +403,7 @@ class MainMenuScreen:
             "Seleccione un modo de operación:"
         ]
 
-        base_y = 240
+        base_y = 210
         for i, line in enumerate(desc_lines):
             line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
             surface.blit(line_surf,
