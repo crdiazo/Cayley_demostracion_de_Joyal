@@ -344,60 +344,54 @@ class NSelectionScreen:
     def show_info(self):
         self.error_message = "Ingrese el número de vértices del árbol (ej: 6)"
 
-# ==============================================================================
-# PANTALLA PRINCIPAL
-# ==============================================================================
-
 class MainMenuScreen:
     def __init__(self):
         self.title = f"DEMOSTRACIÓN DE JOYAL - n = {n}"
-        
+
         # Botones principales
         btn_width = 300
         btn_height = 100
         center_x = WIDTH // 2
-        
-        self.btn_mode1 = ProfessionalButton(center_x - btn_width - 20, 300, btn_width, btn_height, 
-                                           "MODO 1\nÁRBOL → FUNCIÓN", COLORS['info'])
-        
-        self.btn_mode2 = ProfessionalButton(center_x + 20, 300, btn_width, btn_height, 
-                                           "MODO 2\nFUNCIÓN → ÁRBOL", COLORS['success'])
-        
-        self.btn_reset = ProfessionalButton(center_x - 100, 450, 200, 60, 
-                                           "REINICIAR", COLORS['warning'])
-        
+
+        # Subimos los botones para dar espacio al preview
+        self.btn_mode1 = ProfessionalButton(center_x - btn_width - 20, 340, btn_width, btn_height,
+                                            "MODO 1\nÁRBOL → FUNCIÓN", COLORS['info'])
+
+        self.btn_mode2 = ProfessionalButton(center_x + 20, 340, btn_width, btn_height,
+                                            "MODO 2\nFUNCIÓN → ÁRBOL", COLORS['success'])
+
+        # Botón reiniciar centrado y más arriba
+        self.btn_reset = ProfessionalButton(center_x - 100, 470, 200, 60,
+                                            "REINICIAR", COLORS['warning'])
+
         self.btn_back = ProfessionalButton(30, 30, 120, 40, "← VOLVER", COLORS['gray'])
-        
-        # Información del árbol
+
         self.tree_info = f"Árboles posibles con {n} vértices: {n**(n-2):,}"
-    
+
     def draw(self, surface):
-        # LIMPIAR TODA LA PANTALLA PRIMERO
         surface.fill(COLORS['background'])
-        
+
         # Encabezado con gradiente
         header_rect = pygame.Rect(0, 0, WIDTH, 180)
         for y in range(header_rect.height):
             color_val = 30 + int(40 * (y / header_rect.height))
             pygame.draw.line(surface, (color_val, 60, 114), (0, y), (WIDTH, y))
-        
+
         # Título
         title_surf = FONT_TITLE.render(self.title, True, COLORS['white'])
-        title_shadow = FONT_TITLE.render(self.title, True, (20, 40, 80))
-        surface.blit(title_shadow, (WIDTH//2 - title_surf.get_width()//2 + 2, 52))
         surface.blit(title_surf, (WIDTH//2 - title_surf.get_width()//2, 50))
-        
+
         # Fórmula
-        formula = FONT_SUBTITLE.render(f"Fórmula de Cayley: n^(n-2) = {n}^({n}-2) = {n**(n-2):,}", 
-                                      True, COLORS['light'])
+        formula = FONT_SUBTITLE.render(f"Fórmula de Cayley: n^(n-2) = {n}^({n}-2) = {n**(n-2):,}",
+                                       True, COLORS['light'])
         surface.blit(formula, (WIDTH//2 - formula.get_width()//2, 120))
-        
-        # Panel central
-        panel_rect = pygame.Rect(WIDTH//2 - 350, 200, 700, 350)
+
+        # Panel central — MÁS ALTO (500 px → 580 px)
+        panel_rect = pygame.Rect(WIDTH//2 - 350, 200, 700, 580)
         pygame.draw.rect(surface, COLORS['white'], panel_rect, border_radius=20)
         pygame.draw.rect(surface, COLORS['accent'], panel_rect, 3, border_radius=20)
-        
-        # Descripción
+
+        # Texto explicativo
         desc_lines = [
             "Esta aplicación demuestra la biyección de Joyal para la",
             "fórmula de Cayley, que establece una correspondencia entre",
@@ -405,24 +399,25 @@ class MainMenuScreen:
             "",
             "Seleccione un modo de operación:"
         ]
-        
+
         for i, line in enumerate(desc_lines):
             line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
-            surface.blit(line_surf, (WIDTH//2 - line_surf.get_width()//2, 220 + i * 30))
-        
+            surface.blit(line_surf, (WIDTH//2 - line_surf.get_width()//2, 230 + i * 28))
+
         # Dibujar botones
         self.btn_mode1.draw(surface)
         self.btn_mode2.draw(surface)
         self.btn_reset.draw(surface)
         self.btn_back.draw(surface)
-        
-        # Dibujar vértices en círculo (solo visual)
-        self.draw_vertices_preview(surface)
-    
-    def draw_vertices_preview(self, surface):
-        center_x, center_y = WIDTH // 2, 650
 
-        # Ajustar radio según la cantidad de vértices para evitar que se encimen
+        # Dibujar preview
+        self.draw_vertices_preview(surface)
+
+    def draw_vertices_preview(self, surface):
+        center_x = WIDTH // 2
+        center_y = 670  # Bajé el preview aún más
+
+        # Ajuste dinámico del radio
         if n <= 8:
             radius = 140
         elif n <= 12:
@@ -430,18 +425,18 @@ class MainMenuScreen:
         elif n <= 20:
             radius = 210
         else:
-            radius = 260  # Para n grandes
+            radius = 260
 
-        num_vertices = n  # <-- AHORA sí todos
+        num_vertices = n
 
-        # Limpiar área de preview (más grande para soportar más vértices)
+        # Limpiar área del preview
         preview_area = pygame.Rect(center_x - radius - vertice_rad - 20,
-                                center_y - radius - vertice_rad - 20,
-                                (radius + vertice_rad + 20) * 2,
-                                (radius + vertice_rad + 20) * 2)
+                                   center_y - radius - vertice_rad - 20,
+                                   (radius + vertice_rad + 20) * 2,
+                                   (radius + vertice_rad + 20) * 2)
         pygame.draw.rect(surface, COLORS['background'], preview_area)
 
-        # Dibujar vértices distribuidos en círculo
+        # Dibujar vértices
         for i in range(num_vertices):
             angle = 2 * math.pi * i / num_vertices - math.pi / 2
             x = center_x + radius * math.cos(angle)
@@ -457,23 +452,23 @@ class MainMenuScreen:
         # Texto informativo
         info_text = f"Visualizando {num_vertices} vértices"
         info_surf = FONT_SMALL.render(info_text, True, COLORS['gray'])
-        surface.blit(info_surf, (center_x - info_surf.get_width() // 2, center_y + radius + 40))
+        surface.blit(info_surf,
+                     (center_x - info_surf.get_width() // 2, center_y + radius + 25))
 
-    
     def update(self, mouse_pos, dt):
         self.btn_mode1.update(mouse_pos)
         self.btn_mode2.update(mouse_pos)
         self.btn_reset.update(mouse_pos)
         self.btn_back.update(mouse_pos)
-    
+
     def handle_event(self, event):
         if self.btn_mode1.handle_event(event):
             return "MODE1"
-        elif self.btn_mode2.handle_event(event):
+        if self.btn_mode2.handle_event(event):
             return "MODE2"
-        elif self.btn_reset.handle_event(event):
+        if self.btn_reset.handle_event(event):
             return "RESET"
-        elif self.btn_back.handle_event(event):
+        if self.btn_back.handle_event(event):
             return "BACK"
         return None
 
