@@ -497,8 +497,8 @@ class TreeToFunctionMode:
         button_height = 48
         y = HEIGHT - 90
 
-        self.btn_prev = ProfessionalButton(220, y, button_width, button_height, "← Atrás", COLORS["gray"])
-        self.btn_next = ProfessionalButton(WIDTH - button_width - 65, y, button_width, button_height, "Continuar →", COLORS["success"])
+        self.btn_prev = ProfessionalButton(270, y, button_width, button_height, "← Atrás", COLORS["gray"])
+        self.btn_next = ProfessionalButton(WIDTH - button_width - 60, y, button_width, button_height, "Continuar →", COLORS["success"])
 
 
         # Panel izquierdo
