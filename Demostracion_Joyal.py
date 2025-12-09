@@ -421,34 +421,44 @@ class MainMenuScreen:
     
     def draw_vertices_preview(self, surface):
         center_x, center_y = WIDTH // 2, 650
-        radius = 120
-        num_vertices = min(n, 12)  # Mostrar máximo 12 vértices en el preview
-        
-        # Limpiar área de preview
-        preview_area = pygame.Rect(center_x - radius - vertice_rad - 10, 
-                                 center_y - radius - vertice_rad - 10,
-                                 (radius + vertice_rad + 10) * 2,
-                                 (radius + vertice_rad + 10) * 2)
+
+        # Ajustar radio según la cantidad de vértices para evitar que se encimen
+        if n <= 8:
+            radius = 140
+        elif n <= 12:
+            radius = 170
+        elif n <= 20:
+            radius = 210
+        else:
+            radius = 260  # Para n grandes
+
+        num_vertices = n  # <-- AHORA sí todos
+
+        # Limpiar área de preview (más grande para soportar más vértices)
+        preview_area = pygame.Rect(center_x - radius - vertice_rad - 20,
+                                center_y - radius - vertice_rad - 20,
+                                (radius + vertice_rad + 20) * 2,
+                                (radius + vertice_rad + 20) * 2)
         pygame.draw.rect(surface, COLORS['background'], preview_area)
-        
+
+        # Dibujar vértices distribuidos en círculo
         for i in range(num_vertices):
-            angle = 2 * math.pi * i / num_vertices - math.pi/2
+            angle = 2 * math.pi * i / num_vertices - math.pi / 2
             x = center_x + radius * math.cos(angle)
             y = center_y + radius * math.sin(angle)
-            
-            # Vértice
+
             pygame.draw.circle(surface, COLORS['vertex'], (int(x), int(y)), vertice_rad)
             pygame.draw.circle(surface, COLORS['white'], (int(x), int(y)), vertice_rad, 2)
-            
-            # Número
-            num_surf = FONT_BOLD.render(str(i+1), True, COLORS['white'])
-            surface.blit(num_surf, (int(x) - num_surf.get_width()//2, 
-                                   int(y) - num_surf.get_height()//2))
-        
+
+            num_surf = FONT_BOLD.render(str(i + 1), True, COLORS['white'])
+            surface.blit(num_surf, (int(x) - num_surf.get_width() // 2,
+                                    int(y) - num_surf.get_height() // 2))
+
         # Texto informativo
-        info_text = f"Visualizando {num_vertices} de {n} vértices"
+        info_text = f"Visualizando {num_vertices} vértices"
         info_surf = FONT_SMALL.render(info_text, True, COLORS['gray'])
-        surface.blit(info_surf, (center_x - info_surf.get_width()//2, center_y + 150))
+        surface.blit(info_surf, (center_x - info_surf.get_width() // 2, center_y + radius + 40))
+
     
     def update(self, mouse_pos, dt):
         self.btn_mode1.update(mouse_pos)
@@ -1572,4 +1582,3 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
-
