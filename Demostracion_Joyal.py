@@ -410,7 +410,8 @@ class MainMenuScreen:
             surface.blit(
                 line_surf,
                 (panel_center - line_surf.get_width() // 2,
-                 base_y + i * 28))
+                 base_y + i * 28)
+            )
 
         # Botones
         self.btn_mode1.draw(surface)
@@ -1573,6 +1574,7 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
+
 
 
 
