@@ -1239,7 +1239,7 @@ class JoyalApplication:
                         n_val = self.n_selection_screen.selected_n
                         inicializar_estructuras(n_val)
                         self.main_menu_screen = MainMenuScreen()
-                        self.tree_to_func_screen = TreeToFunctionMode()
+                        self.tree_to_func_screen = Modo1Pantalla()
                         self.func_to_tree_screen = FunctionToTreeMode()
                         self.current_screen = "MAIN_MENU"
                 
