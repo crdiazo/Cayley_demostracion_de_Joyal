@@ -471,16 +471,14 @@ class MainMenuScreen:
         return None
 
 # ======================================================================
-# MODO 1: ÁRBOL -> FUNCIÓN  (Clase lista para pegar)
+# MODO 1: ÁRBOL -> FUNCIÓN (Clase lista para pegar)
 # ======================================================================
-
 class TreeToFunctionMode:
     def __init__(self):
-        # título corto (la cabecera principal la maneja la pantalla general)
         self.title = "MODO 1: ÁRBOL → FUNCIÓN"
 
-        # estado
-        self.step = 0                    # 0: construir, 1: inicio, 2: fin, 3: listo
+        # estado del modo
+        self.step = 0  # 0: construir, 1: inicio, 2: fin, 3: listo
         self.selected_vertex = None
         self.start_vertex = None
         self.end_vertex = None
@@ -491,113 +489,201 @@ class TreeToFunctionMode:
         self.directed_edges = []
         self.spine_path = None
 
-        # botones (pos. en el layout general)
-        self.btn_back = ProfessionalButton(30, 18, 130, 44, "← MENÚ", COLORS['gray'])
-        self.btn_reset = ProfessionalButton(WIDTH - 160, 18, 140, 44, "REINICIAR", COLORS['warning'])
+        # botones (no deben superponerse al panel)
+        self.btn_back = ProfessionalButton(20, 18, 120, 44, "← MENÚ", COLORS['gray'])
+        self.btn_reset = ProfessionalButton(WIDTH - 150, 18, 130, 44, "REINICIAR", COLORS['warning'])
 
-        # prev/next estarán visibles dentro del área inferior del gráfico
-        self.btn_prev = ProfessionalButton(0, 0, 150, 42, "← ATRÁS", COLORS['gray'])   # posición ajustada en draw()
-        self.btn_next = ProfessionalButton(0, 0, 150, 42, "CONTINUAR →", COLORS['success'])
+        # prev/next colocados en la parte inferior central del área del grafo (dentro del rect)
+        self.btn_prev = ProfessionalButton(WIDTH//2 - 220, HEIGHT - 80, 160, 44, "← ATRÁS", COLORS['gray'])
+        self.btn_next = ProfessionalButton(WIDTH//2 + 60, HEIGHT - 80, 160, 44, "CONTINUAR →", COLORS['success'])
 
-        # panel izquierdo de información
-        self.info_panel = pygame.Rect(28, 110, 360, HEIGHT - 180)
+        # Left info panel (fijo)
+        self.info_panel = pygame.Rect(30, 110, 360, HEIGHT - 170)
 
-        # área para dibujar el gráfico (derecha)
-        self.graph_area = pygame.Rect(self.info_panel.right + 20, 110, WIDTH - (self.info_panel.right + 60), HEIGHT - 200)
+        # Right graph area (donde se centra el grafo)
+        self.graph_area = pygame.Rect(self.info_panel.right + 20, 110,
+                                      WIDTH - (self.info_panel.right + 40), HEIGHT - 170)
 
-        # Asegurar posiciones de vértices (se recalculan antes de dibujar)
-        # vertice_pos es global (lista de tuplas). Si está vacío se generamos una posición circular dentro de graph_area.
-        # vertice_rad es global (radio del vértice)
-        self.layout_vertices_if_needed()
+        # margen interior del área de grafo para que no quede pegado al borde
+        self.graph_padding = 60
 
-    # ------------------------------------------------------------------
-    def layout_vertices_if_needed(self):
+        # Aseguramos que vertice_pos exista y tenga posiciones razonables
+        self.compute_vertex_positions()
+
+    # recalcula posiciones centrales de vértices según el área de grafo y n
+    def compute_vertex_positions(self):
         global vertice_pos
-        if len(vertice_pos) == n:
-            return  # ya calculado por otra parte (mantiene consistencia si lo calculas externamente)
-
-        # Calcular posiciones en círculo dentro de graph_area
-        cx = self.graph_area.centerx
-        cy = self.graph_area.centery - 20  # un poco hacia arriba para dejar espacio al indicador
-        # Radio adaptativo según tamaño del área y n
-        max_radius = min(self.graph_area.width, self.graph_area.height) // 2 - 80
-        radius = max(80, max_radius)
-
         vertice_pos = []
+        cx = self.graph_area.centerx
+        cy = self.graph_area.centery
+        # radius máximo según área
+        max_r = min(self.graph_area.width, self.graph_area.height) // 2 - 80
+        # ajustar radius según n para evitar encimamiento
+        if n <= 8:
+            radius = int(max_r * 0.85)
+        elif n <= 15:
+            radius = int(max_r * 0.78)
+        elif n <= 30:
+            radius = int(max_r * 0.70)
+        else:
+            radius = int(max_r * 0.65)
+
+        # si el radius es muy pequeño, fijarlo
+        radius = max(radius, 80)
+
         for i in range(n):
-            angle = 2 * math.pi * i / n - math.pi / 2
+            angle = 2 * math.pi * i / n - math.pi/2
             x = int(cx + radius * math.cos(angle))
             y = int(cy + radius * math.sin(angle))
             vertice_pos.append((x, y))
 
-    # ------------------------------------------------------------------
+    # Texto de instrucciones según paso
+    def get_instructions(self):
+        texts = [
+            "PASO 1: Conectar dos vértices para añadir una arista (clic en dos vértices).",
+            "PASO 2: Seleccione el vértice INICIAL de la vértebra.",
+            "PASO 3: Seleccione el vértice FINAL de la vértebra.",
+            "¡Listo! Función generada. Revise la tabla y la vértebra."
+        ]
+        return texts[self.step]
+
+    # ------------------ DIBUJADO PRINCIPAL ------------------
     def draw(self, surface):
-        # limpiar
+        # limpiar fondo
         surface.fill(COLORS['background'])
 
-        # Cabecera pequeña (título central y mensaje de paso)
-        header_rect = pygame.Rect(0, 0, WIDTH, 88)
-        pygame.draw.rect(surface, COLORS['info'], header_rect)
+        # encabezado
+        header = pygame.Rect(0, 0, WIDTH, 90)
+        pygame.draw.rect(surface, COLORS['info'], header)
         title_surf = FONT_TITLE.render(self.title, True, COLORS['white'])
         surface.blit(title_surf, (WIDTH//2 - title_surf.get_width()//2, 18))
 
+        # subtitulo instrucciones (centrado)
         instr = self.get_instructions()
         instr_surf = FONT_REGULAR.render(instr, True, COLORS['light'])
-        surface.blit(instr_surf, (WIDTH//2 - instr_surf.get_width()//2, 72))
+        surface.blit(instr_surf, (WIDTH//2 - instr_surf.get_width()//2, 64))
 
-        # panel izquierdo (información)
+        # panel izquierdo (info)
         pygame.draw.rect(surface, COLORS['white'], self.info_panel, border_radius=12)
         pygame.draw.rect(surface, COLORS['accent'], self.info_panel, 2, border_radius=12)
         self.draw_info_panel(surface)
 
-        # área del gráfico
+        # area del grafo (derecha)
         pygame.draw.rect(surface, COLORS['white'], self.graph_area, border_radius=12)
         pygame.draw.rect(surface, COLORS['accent'], self.graph_area, 2, border_radius=12)
 
-        # recalcular posiciones si n cambió
-        self.layout_vertices_if_needed()
-
-        # dibujar el árbol (aristas, flechas, vértices)
+        # dibujar aristas y vértices
         self.draw_tree(surface)
 
-        # botones arriba
+        # dibujar botones
         self.btn_back.draw(surface)
         self.btn_reset.draw(surface)
 
-        # colocar prev/next centrados bajo el área del gráfico (dentro del borde)
-        btn_y = self.graph_area.bottom - 38
-        btn_gap = 18
-        # posicionar prev a la izquierda del centro y next a la derecha del centro
-        self.btn_prev.rect.x = self.graph_area.left + 40
-        self.btn_prev.rect.y = btn_y
-        self.btn_next.rect.x = self.graph_area.right - 190
-        self.btn_next.rect.y = btn_y
-
+        # prev/next solo si corresponde
         if self.step > 0:
             self.btn_prev.draw(surface)
-        # next solo si no está en paso final o si se cumple
+        # si no completado, mostrar next solo cuando check_step_complete, si step==3 ocultarlo
         if self.step < 3:
-            # si está en paso 0/1/2 sólo mostrar si check_step_complete() es True o si queremos permitir avance
             if self.check_step_complete():
                 self.btn_next.draw(surface)
 
-        # dibujar indicador de pasos centrado justo abajo del área del gráfico
+        # indicador de pasos (pequeño, centrado bajo el área del grafo)
         self.draw_step_indicator(surface)
 
-    # ------------------------------------------------------------------
-    def get_instructions(self):
-        texts = [
-            "PASO 1: Conectar dos vértices para añadir una arista (clic en 2 vértices).",
-            "PASO 2: Seleccione el vértice INICIAL de la vértebra.",
-            "PASO 3: Seleccione el vértice FINAL de la vértebra.",
-            "¡Listo! Función generada. Revise la tabla y la vertebra."
-        ]
-        return texts[self.step]
+    # ------------------ DIBUJAR PANEL IZQUIERDO (INFORMACIÓN & TABLA) ------------------
+    def draw_info_panel(self, surface):
+        x = self.info_panel.x + 18
+        y = self.info_panel.y + 16
 
-    # ------------------------------------------------------------------
+        # título
+        surface.blit(FONT_BOLD.render("INFORMACIÓN DEL ÁRBOL", True, COLORS['accent']), (x, y))
+        y += 36
+
+        # líneas info
+        lines = [
+            f"Vértices: {n}",
+            f"Aristas: {len(aristas)}/{max(0, n-1)}",
+            f"Conectado: {'Sí' if self.is_connected() else 'No'}",
+            f"Paso actual: {self.step+1}/4"
+        ]
+        if self.start_vertex is not None:
+            lines.append(f"Inicio: V{self.start_vertex+1}")
+        if self.end_vertex is not None:
+            lines.append(f"Fin: V{self.end_vertex+1}")
+
+        for line in lines:
+            surface.blit(FONT_SMALL.render(line, True, COLORS['dark']), (x, y))
+            y += 22
+        y += 8
+
+        # VÉRTEBRA (fin -> inicio) y otros vértices
+        spine_text = "VÉRTEBRA (fin → inicio):"
+        surface.blit(FONT_BOLD.render(spine_text, True, COLORS['danger']), (x, y))
+        y += 22
+
+        if self.spine_path and len(self.spine_path) > 0:
+            # mostrar en orden fin -> inicio (empezando por end_vertex)
+            seq = list(reversed(self.spine_path))
+            seq_display = " - ".join(str(v+1) for v in seq)
+            surface.blit(FONT_SMALL.render(seq_display, True, COLORS['dark']), (x, y))
+            y += 24
+        else:
+            surface.blit(FONT_SMALL.render("—", True, COLORS['dark']), (x, y))
+            y += 24
+
+        # Otros vértices (muestra)
+        others = [str(i+1) for i in range(n) if (self.spine_path is None or i not in self.spine_path)]
+        others_text = "Otros vértices: " + (", ".join(others) if others else "—")
+        surface.blit(FONT_SMALL.render(others_text, True, COLORS['dark']), (x, y))
+        y += 26
+
+        # TABLA f(V) estilo "excel"
+        surface.blit(FONT_BOLD.render("Tabla f(V):", True, COLORS['accent']), (x, y))
+        y += 10
+
+        table_w = self.info_panel.width - 36
+        col_v_x = x
+        col_f_x = x + 60
+        row_h = 20
+        y += 8
+
+        # header row background
+        hdr_rect = pygame.Rect(x, y, table_w, row_h)
+        pygame.draw.rect(surface, (245, 247, 249), hdr_rect)
+        surface.blit(FONT_SMALL.render("V", True, COLORS['dark']), (col_v_x + 6, y + 1))
+        surface.blit(FONT_SMALL.render("f(V)", True, COLORS['dark']), (col_f_x + 6, y + 1))
+        y += row_h
+
+        # filas (hasta que el panel termine o hasta n)
+        max_rows = min(n, (self.info_panel.bottom - y - 30) // row_h)
+        for i in range(max_rows):
+            row_rect = pygame.Rect(x, y + i*row_h, table_w, row_h)
+            if i % 2 == 0:
+                pygame.draw.rect(surface, (250, 251, 252), row_rect)
+            v_txt = FONT_TINY.render(str(i+1), True, COLORS['dark'])
+            fv = self.function[i]
+            fv_txt = FONT_TINY.render(str(fv+1) if fv is not None else "?", True, COLORS['dark'])
+            surface.blit(v_txt, (col_v_x + 6, y + i*row_h + 2))
+            surface.blit(fv_txt, (col_f_x + 6, y + i*row_h + 2))
+        y += max_rows * row_h + 8
+
+        # ARISTAS ORIENTADAS (muestras)
+        surface.blit(FONT_BOLD.render("Aristas orientadas (muestras):", True, COLORS['accent']), (x, y))
+        y += 22
+        # mostramos hasta 6 muestras
+        sample = self.directed_edges[:6]
+        if sample:
+            for (a, b) in sample:
+                surface.blit(FONT_SMALL.render(f"V{a+1} → V{b+1}", True, COLORS['dark']), (x, y))
+                y += 18
+        else:
+            surface.blit(FONT_SMALL.render("—", True, COLORS['dark']), (x, y))
+            y += 18
+
+    # ------------------ DIBUJAR ÁRBOL, ARISTAS Y VÉRTICES ------------------
     def draw_tree(self, surface):
-        # aristas
-        for (v1, v2) in aristas:
+        # dibujar aristas (primero sombras si hace falta)
+        for v1, v2 in aristas:
             x1, y1 = vertice_pos[v1]
             x2, y2 = vertice_pos[v2]
             color = COLORS['edge']
@@ -607,27 +693,14 @@ class TreeToFunctionMode:
                 width = 5
             pygame.draw.line(surface, color, (x1, y1), (x2, y2), width)
 
-        # flechas (aristas orientadas)
+        # flechas dirigidas
         for v1, v2 in self.directed_edges:
             self.draw_arrow(surface, vertice_pos[v1], vertice_pos[v2], COLORS['arrow'])
 
-        # vértices (con sombra sutil)
-        self.draw_vertices(surface)
-
-        # resaltar inicio/fin (si existen)
-        if self.start_vertex is not None:
-            self.highlight_vertex(surface, self.start_vertex, COLORS['success'])
-        if self.end_vertex is not None:
-            self.highlight_vertex(surface, self.end_vertex, COLORS['danger'])
-
-    # ------------------------------------------------------------------
-    def draw_vertices(self, surface):
+        # vértices
         for i, (x, y) in enumerate(vertice_pos):
-            # sombra
-            shadow = (x + 3, y + 3)
-            pygame.draw.circle(surface, (120, 120, 120, 120), shadow, vertice_rad)
-
-            # color
+            # sombra sutil
+            pygame.draw.circle(surface, (90, 90, 90), (x+2, y+2), vertice_rad)
             color = COLORS['vertex']
             if i == self.selected_vertex:
                 color = COLORS['highlight']
@@ -635,152 +708,53 @@ class TreeToFunctionMode:
                 color = COLORS['success']
             if i == self.end_vertex:
                 color = COLORS['danger']
-
             pygame.draw.circle(surface, color, (x, y), vertice_rad)
             pygame.draw.circle(surface, COLORS['white'], (x, y), vertice_rad, 2)
+            num_surf = FONT_BOLD.render(str(i+1), True, COLORS['white'])
+            surface.blit(num_surf, (x - num_surf.get_width()//2, y - num_surf.get_height()//2))
 
-            # número centrado
-            num_s = FONT_BOLD.render(str(i + 1), True, COLORS['white'])
-            surface.blit(num_s, (x - num_s.get_width() // 2, y - num_s.get_height() // 2))
+        # destacar inicio/fin con anillo
+        if self.start_vertex is not None:
+            sx, sy = vertice_pos[self.start_vertex]
+            pygame.draw.circle(surface, COLORS['success'], (sx, sy), vertice_rad+8, 3)
+        if self.end_vertex is not None:
+            ex, ey = vertice_pos[self.end_vertex]
+            pygame.draw.circle(surface, COLORS['danger'], (ex, ey), vertice_rad+8, 3)
 
-    # ------------------------------------------------------------------
     def draw_arrow(self, surface, start, end, color):
-        sx, sy = start
-        ex, ey = end
-        dx = ex - sx
-        dy = ey - sy
+        dx = end[0] - start[0]
+        dy = end[1] - start[1]
         L = math.hypot(dx, dy)
         if L == 0:
             return
-        # ajustar a radios
-        s_adj = (sx + dx / L * vertice_rad, sy + dy / L * vertice_rad)
-        e_adj = (ex - dx / L * vertice_rad, ey - dy / L * vertice_rad)
-        pygame.draw.line(surface, color, s_adj, e_adj, 3)
-        angle = math.atan2(dy, dx)
-        arrow_size = 10
-        left = (e_adj[0] - arrow_size * math.cos(angle - math.pi/6),
-                e_adj[1] - arrow_size * math.sin(angle - math.pi/6))
-        right = (e_adj[0] - arrow_size * math.cos(angle + math.pi/6),
-                 e_adj[1] - arrow_size * math.sin(angle + math.pi/6))
-        pygame.draw.polygon(surface, color, [e_adj, left, right])
+        # ajustar al borde
+        start_adj = (start[0] + dx/L * vertice_rad, start[1] + dy/L * vertice_rad)
+        end_adj = (end[0] - dx/L * vertice_rad, end[1] - dy/L * vertice_rad)
+        pygame.draw.line(surface, color, start_adj, end_adj, 3)
+        ang = math.atan2(dy, dx)
+        s = 10
+        left = (end_adj[0] - s * math.cos(ang - 0.4), end_adj[1] - s * math.sin(ang - 0.4))
+        right = (end_adj[0] - s * math.cos(ang + 0.4), end_adj[1] - s * math.sin(ang + 0.4))
+        pygame.draw.polygon(surface, color, [end_adj, left, right])
 
-    # ------------------------------------------------------------------
-    def highlight_vertex(self, surface, idx, color):
-        x, y = vertice_pos[idx]
-        pygame.draw.circle(surface, color, (x, y), vertice_rad + 6, 3)
-
-    # ------------------------------------------------------------------
-    def draw_info_panel(self, surface):
-        x = self.info_panel.x + 18
-        y = self.info_panel.y + 16
-
-        # Título
-        title = FONT_BOLD.render("INFORMACIÓN DEL ÁRBOL", True, COLORS['accent'])
-        surface.blit(title, (x, y))
-        y += 36
-
-        # Líneas informativas
-        lines = [
-            f"Vértices: {n}",
-            f"Aristas: {len(aristas)}/{max(1, n-1)}",
-            f"Conectado: {'Sí' if self.is_connected() else 'No'}",
-            f"Paso actual: {self.step+1}/4",
-        ]
-        if self.start_vertex is not None:
-            lines.append(f"Inicio: V{self.start_vertex+1}")
-        if self.end_vertex is not None:
-            lines.append(f"Fin: V{self.end_vertex+1}")
-
-        for line in lines:
-            txt = FONT_SMALL.render(line, True, COLORS['dark'])
-            surface.blit(txt, (x, y))
-            y += 22
-
-        y += 6
-
-        # Mostrar vertebra si existe (inicio -> ... -> fin), en formato "inicio ... fin" (de inicio a fin)
-        if self.spine_path:
-            v_line = " - ".join(str(v+1) for v in self.spine_path[::-1])  # mostrar fin -> ... -> inicio ? (ajustable)
-            # El usuario pidió "mostrar que el vértice es de fin a inicio" — aquí lo dejo como: Vértice (fin→inicio)
-            label = FONT_BOLD.render("VÉRTEBRA (fin → inicio):", True, COLORS['danger'])
-            surface.blit(label, (x, y))
-            y += 22
-            vtxt = FONT_SMALL.render(v_line, True, COLORS['dark'])
-            surface.blit(vtxt, (x, y))
-            y += 28
-        else:
-            # mostrar "Otros vértices" (los no incluidos en la vertebra) o placeholder
-            txt = FONT_SMALL.render("Vértebra: —", True, COLORS['gray'])
-            surface.blit(txt, (x, y))
-            y += 22
-            others = ", ".join(str(i+1) for i in range(n))
-            others_txt = FONT_SMALL.render("Otros vértices: " + others, True, COLORS['dark'])
-            surface.blit(others_txt, (x, y))
-            y += 28
-
-        # Tabla f(V) estilo "excel" (dos columnas)
-        table_title = FONT_BOLD.render("Tabla f(V):", True, COLORS['dark'])
-        surface.blit(table_title, (x, y))
-        y += 20
-
-        table_x = x
-        table_w = self.info_panel.width - 40
-        row_h = 20
-        header_h = 24
-        # cabecera
-        pygame.draw.rect(surface, (245, 245, 248), (table_x, y, table_w, header_h))
-        v_hdr = FONT_SMALL.render("V", True, COLORS['dark'])
-        fv_hdr = FONT_SMALL.render("f(V)", True, COLORS['dark'])
-        surface.blit(v_hdr, (table_x + 6, y + 4))
-        surface.blit(fv_hdr, (table_x + table_w//2 + 6, y + 4))
-        y += header_h
-
-        # filas (hasta n)
-        for i in range(n):
-            # alternar fondo
-            if i % 2 == 0:
-                bg = (250, 250, 252)
-            else:
-                bg = (245, 247, 249)
-            pygame.draw.rect(surface, bg, (table_x, y, table_w, row_h))
-            vtxt = FONT_TINY.render(str(i+1), True, COLORS['dark'])
-            fv = self.function[i]
-            fv_txt = FONT_TINY.render(str(fv+1) if fv is not None else "?", True, COLORS['dark'])
-            surface.blit(vtxt, (table_x + 6, y + 2))
-            surface.blit(fv_txt, (table_x + table_w//2 + 6, y + 2))
-            y += row_h
-
-        y += 12
-
-        # Aristas orientadas (muestras)
-        label2 = FONT_BOLD.render("Aristas orientadas (muestras):", True, COLORS['dark'])
-        surface.blit(label2, (x, y))
-        y += 22
-        # mostrar hasta 5 ejemplos
-        samples = self.directed_edges[:5]
-        for (a, b) in samples:
-            txt = FONT_TINY.render(f"V{a+1} → V{b+1}", True, COLORS['dark'])
-            surface.blit(txt, (x, y))
-            y += 18
-
-    # ------------------------------------------------------------------
+    # ------------------ INDICADORES DE PASO (abajo centrados) ------------------
     def draw_step_indicator(self, surface):
         steps = ["1. Construir", "2. Inicio", "3. Fin", "4. Listo"]
-        base_x = self.graph_area.left + 40
-        y = self.graph_area.bottom + 4
-        # dibujar 4 rects pequeños con separación
+        base_x = WIDTH//2 - (len(steps) * 140)//2
+        y = HEIGHT - 140
         for i, label in enumerate(steps):
-            rect = pygame.Rect(base_x + i * 140, y, 130, 36)
-            color = COLORS['gray']
+            rect = pygame.Rect(base_x + i*140, y, 130, 42)
+            col = COLORS['gray']
             if i < self.step:
-                color = COLORS['success']
+                col = COLORS['success']
             elif i == self.step:
-                color = COLORS['info']
-            pygame.draw.rect(surface, color, rect, border_radius=8)
+                col = COLORS['info']
+            pygame.draw.rect(surface, col, rect, border_radius=10)
+            pygame.draw.rect(surface, COLORS['white'], rect, 2, border_radius=10)
             txt = FONT_SMALL.render(label, True, COLORS['white'])
             surface.blit(txt, (rect.centerx - txt.get_width()//2, rect.centery - txt.get_height()//2))
 
-    # ------------------------------------------------------------------
+    # ------------------ LÓGICA / CHECKS ------------------
     def is_connected(self):
         if n == 0:
             return False
@@ -789,16 +763,15 @@ class TreeToFunctionMode:
 
     def check_step_complete(self):
         if self.step == 0:
-            return len(aristas) == n - 1 and self.is_connected()
+            return len(aristas) == max(0, n-1) and self.is_connected()
         if self.step == 1:
             return self.start_vertex is not None
         if self.step == 2:
             return self.end_vertex is not None
         return True
 
-    # ------------------------------------------------------------------
+    # ------------------ MANEJO INTERACCIÓN ------------------
     def handle_vertex_click(self, idx):
-        # manejo de clicks según paso
         if self.step == 0:
             if self.selected_vertex is None:
                 self.selected_vertex = idx
@@ -806,7 +779,8 @@ class TreeToFunctionMode:
                 if idx != self.selected_vertex:
                     self.add_edge(self.selected_vertex, idx)
                 self.selected_vertex = None
-                if len(aristas) == n - 1 and self.is_connected():
+                # si ya hay n-1 aristas y conectado → pasar a siguiente paso
+                if len(aristas) == max(0, n-1) and self.is_connected():
                     self.step = 1
         elif self.step == 1:
             self.start_vertex = idx
@@ -817,9 +791,8 @@ class TreeToFunctionMode:
                 self.calculate_function()
                 self.step = 3
 
-    # ------------------------------------------------------------------
     def add_edge(self, v1, v2):
-        # evitar duplicados o ciclos
+        # evita duplicados y ciclos
         if (v1, v2) in aristas or (v2, v1) in aristas:
             return
         if find(v1) == find(v2):
@@ -829,9 +802,8 @@ class TreeToFunctionMode:
         grafo[v1].append(v2)
         grafo[v2].append(v1)
 
-    # ------------------------------------------------------------------
     def calculate_function(self):
-        # encontrar camino (spine)
+        # hallar camino (spine) entre start and end
         self.spine_path = self.find_path(self.start_vertex, self.end_vertex)
         if self.spine_path and len(self.spine_path) > 1:
             self.spine_edges = [(self.spine_path[i], self.spine_path[i+1]) for i in range(len(self.spine_path)-1)]
@@ -839,12 +811,11 @@ class TreeToFunctionMode:
             rev_spine = list(reversed(self.spine_path))
             for i in range(len(sorted_spine)):
                 self.function[sorted_spine[i]] = rev_spine[i]
-        # orientar el resto
+        # orientar otras aristas
         self.directed_edges = self.direct_edges()
         for v1, v2 in self.directed_edges:
             self.function[v1] = v2
 
-    # ------------------------------------------------------------------
     def find_path(self, start, end):
         visited = [False] * n
         parent = [-1] * n
@@ -866,7 +837,6 @@ class TreeToFunctionMode:
                     q.append(u)
         return [start, end]
 
-    # ------------------------------------------------------------------
     def direct_edges(self):
         # distancias desde end_vertex
         dist = [-1] * n
@@ -882,30 +852,27 @@ class TreeToFunctionMode:
         for v1, v2 in aristas:
             if (v1, v2) in self.spine_edges or (v2, v1) in self.spine_edges:
                 continue
-            # orientar hacia vértice de menor distancia al end_vertex
             if dist[v1] > dist[v2]:
                 out.append((v1, v2))
             else:
                 out.append((v2, v1))
         return out
 
-    # ------------------------------------------------------------------
+    # ------------------ UPDATE + EVENT HANDLING ------------------
     def update(self, mouse_pos, dt):
+        # actualizar estados de botones (hover)
         self.btn_back.update(mouse_pos)
         self.btn_reset.update(mouse_pos)
         self.btn_prev.update(mouse_pos)
         self.btn_next.update(mouse_pos)
 
-    # ------------------------------------------------------------------
     def handle_event(self, event):
-        # botones superiores
+        # botones
         if self.btn_back.handle_event(event):
             return "BACK"
         if self.btn_reset.handle_event(event):
             self.reset()
             return "RESET"
-
-        # prev/next
         if self.btn_prev.handle_event(event) and self.step > 0:
             self.step -= 1
             return None
@@ -913,33 +880,32 @@ class TreeToFunctionMode:
             self.step += 1
             return None
 
-        # click directo en vértices (detección por distancia)
+        # clic sobre vértices (detección por distancia)
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mx, my = event.pos
-            # solo considerar clicks dentro del graph_area
+            # ignora si clic fuera del área de grafo
             if self.graph_area.collidepoint((mx, my)):
-                for i, (x, y) in enumerate(vertice_pos):
-                    if (mx - x) ** 2 + (my - y) ** 2 <= vertice_rad ** 2:
+                for i, (vx, vy) in enumerate(vertice_pos):
+                    if (mx - vx)**2 + (my - vy)**2 <= vertice_rad**2:
                         self.handle_vertex_click(i)
                         break
         return None
 
-    # ------------------------------------------------------------------
     def reset(self):
-        global aristas, grafo, parent, vertice_pos
-        aristas = []
+        global aristas, grafo, parent
+        aristas.clear()
         grafo = [[] for _ in range(n)]
         parent = list(range(n))
-        vertice_pos = []  # se recalculará en next draw
         self.step = 0
         self.selected_vertex = None
         self.start_vertex = None
         self.end_vertex = None
         self.function = [None] * n
-        self.spine_edges = []
-        self.directed_edges = []
+        self.spine_edges.clear()
+        self.directed_edges.clear()
         self.spine_path = None
-
+        # recomputar posiciones por si cambió n
+        self.compute_vertex_positions()
 
 # ==============================================================================
 # MODO 2: FUNCIÓN → ÁRBOL
