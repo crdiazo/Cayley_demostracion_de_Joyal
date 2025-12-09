@@ -347,69 +347,54 @@ class NSelectionScreen:
 # ============================================================================== 
 # PANTALLA PRINCIPAL (REEMPLAZAR ESTA CLASE) 
 # ==============================================================================
+
 class MainMenuScreen:
     def __init__(self):
         self.title = f"DEMOSTRACIÓN DE JOYAL - n = {n}"
-        
-        # Layout constants
-        self.header_height = 140
-        self.panel_margin = 40
-        self.panel_width = WIDTH - 2 * self.panel_margin
-        self.panel_height = 360
-        self.panel_x = self.panel_margin
-        self.panel_y = self.header_height + 20
-        
-        # Botones principales (left column)
-        btn_width = 320
-        btn_height = 90
-        left_col_x = self.panel_x + 40
-        left_col_y = self.panel_y + 110
-        gap_y = 26
-        
-        self.btn_mode1 = ProfessionalButton(left_col_x, left_col_y, btn_width, btn_height, 
-                                           "MODO 1\nÁRBOL → FUNCIÓN", COLORS['info'])
-        
-        self.btn_mode2 = ProfessionalButton(left_col_x, left_col_y + btn_height + gap_y, btn_width, btn_height, 
-                                           "MODO 2\nFUNCIÓN → ÁRBOL", COLORS['success'])
-        
-        self.btn_reset = ProfessionalButton(left_col_x + (btn_width - 200)//2, 
-                                            left_col_y + 2*(btn_height + gap_y), 200, 60, 
+
+        # Panel izquierdo (botones + texto)
+        self.left_x = 80
+        self.left_width = 420
+
+        # Botones principales
+        self.btn_mode1 = ProfessionalButton(self.left_x + 40, 360, 300, 80,
+                                            "MODO 1\nÁRBOL → FUNCIÓN", COLORS['info'])
+
+        self.btn_mode2 = ProfessionalButton(self.left_x + 40, 460, 300, 80,
+                                            "MODO 2\nFUNCIÓN → ÁRBOL", COLORS['success'])
+
+        self.btn_reset = ProfessionalButton(self.left_x + 90, 570, 200, 60,
                                             "REINICIAR", COLORS['warning'])
-        
+
         self.btn_back = ProfessionalButton(30, 30, 120, 40, "← VOLVER", COLORS['gray'])
-        
-        # Información del árbol (texto superior dentro del panel)
-        self.tree_info = f"Árboles posibles con {n} vértices: {n**(n-2):,}"
-    
+
     def draw(self, surface):
-        # Fondo general
         surface.fill(COLORS['background'])
-        
+
         # Encabezado con gradiente
-        header_rect = pygame.Rect(0, 0, WIDTH, self.header_height)
+        header_rect = pygame.Rect(0, 0, WIDTH, 160)
         for y in range(header_rect.height):
             color_val = 30 + int(40 * (y / header_rect.height))
             pygame.draw.line(surface, (color_val, 60, 114), (0, y), (WIDTH, y))
-        
-        # Título en encabezado (centrado y con separación)
+
+        # Título centrado
         title_surf = FONT_TITLE.render(self.title, True, COLORS['white'])
-        title_shadow = FONT_TITLE.render(self.title, True, (20, 40, 80))
-        title_x = WIDTH//2 - title_surf.get_width()//2
-        title_y = 28
-        surface.blit(title_shadow, (title_x + 2, title_y + 2))
-        surface.blit(title_surf, (title_x, title_y))
-        
-        # Fórmula debajo del título (subtítulo)
-        formula = FONT_SUBTITLE.render(f"Fórmula de Cayley: n^(n-2) = {n}^({n}-2) = {n**(n-2):,}", 
-                                      True, COLORS['light'])
-        surface.blit(formula, (WIDTH//2 - formula.get_width()//2, title_y + title_surf.get_height() + 8))
-        
-        # Panel central (ahora actúa como contenedor para la columna izquierda)
-        panel_rect = pygame.Rect(self.panel_x, self.panel_y, self.panel_width, self.panel_height)
-        pygame.draw.rect(surface, COLORS['white'], panel_rect, border_radius=20)
-        pygame.draw.rect(surface, COLORS['accent'], panel_rect, 3, border_radius=20)
-        
-        # Descripción centrada en la parte superior del panel (dentro del panel)
+        surface.blit(title_surf, (WIDTH//2 - title_surf.get_width()//2, 30))
+
+        # Subtítulo (fórmula)
+        formula = FONT_SUBTITLE.render(
+            f"Fórmula de Cayley: n^(n-2) = {n}^({n}-2) = {n**(n-2):,}",
+            True,
+            COLORS['light']
+        )
+        surface.blit(formula, (WIDTH//2 - formula.get_width()//2, 90))
+
+        # PANEL IZQUIERDO (texto + botones)
+        left_panel = pygame.Rect(self.left_x - 20, 180, self.left_width, 500)
+        pygame.draw.rect(surface, COLORS['white'], left_panel, border_radius=20)
+        pygame.draw.rect(surface, COLORS['accent'], left_panel, 3, border_radius=20)
+
+        # Texto explicativo
         desc_lines = [
             "Esta aplicación demuestra la biyección de Joyal para la",
             "fórmula de Cayley, que establece una correspondencia entre",
@@ -417,81 +402,68 @@ class MainMenuScreen:
             "",
             "Seleccione un modo de operación:"
         ]
-        # Calculate a centered area for the description inside panel
-        desc_center_x = panel_rect.centerx
-        desc_start_y = panel_rect.y + 18
+
+        base_y = 210
         for i, line in enumerate(desc_lines):
             line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
-            surface.blit(line_surf, (desc_center_x - line_surf.get_width()//2, desc_start_y + i * 26))
-        
-        # Dibujar botones (en columna izquierda dentro del panel)
+            surface.blit(line_surf,
+                         (self.left_x + self.left_width//2 - line_surf.get_width()//2,
+                          base_y + i * 28))
+
+        # Botones
         self.btn_mode1.draw(surface)
         self.btn_mode2.draw(surface)
         self.btn_reset.draw(surface)
         self.btn_back.draw(surface)
-        
-        # Dibujar vista del grafo a la derecha del panel (fuera del recuadro central)
+
+        # PREVIEW DEL ÁRBOL — AHORA A LA DERECHA
         self.draw_vertices_preview(surface)
-    
+
     def draw_vertices_preview(self, surface):
-        # Allocate right-side area for graph preview
-        right_area_x = self.panel_x + self.panel_width - 20
-        right_area_width = WIDTH - right_area_x
-        center_x = self.panel_x + self.panel_width + (WIDTH - (self.panel_x + self.panel_width)) // 2
-        center_y = self.panel_y + self.panel_height // 2 + 20
-        
-        # Ajustar radio según la cantidad de vértices para que entren sin superponerse
+        # Círculo centrado a la derecha
+        center_x = WIDTH - 350
+        center_y = 430
+
+        # Radio dinámico
         if n <= 8:
             radius = 120
-        elif n <= 12:
-            radius = 150
-        elif n <= 16:
-            radius = 190
-        elif n <= 22:
-            radius = 230
+        elif n <= 15:
+            radius = 170
+        elif n <= 25:
+            radius = 210
         else:
             radius = 260
-        
-        num_vertices = n  # mostrar todos
-        
-        # fondo / limpieza del área derecha (ligeramente)
-        preview_rect = pygame.Rect(self.panel_x + self.panel_width + 20, self.panel_y, 
-                                   WIDTH - (self.panel_x + self.panel_width) - 40, self.panel_height + 160)
-        pygame.draw.rect(surface, COLORS['background'], preview_rect)
-        
-        # Dibujar vértices en círculo
+
+        num_vertices = n
+
+        # Dibujar vértices
         for i in range(num_vertices):
-            angle = 2 * math.pi * i / num_vertices - math.pi / 2
+            angle = 2 * math.pi * i / num_vertices - math.pi/2
             x = center_x + radius * math.cos(angle)
             y = center_y + radius * math.sin(angle)
-            
+
             pygame.draw.circle(surface, COLORS['vertex'], (int(x), int(y)), vertice_rad)
             pygame.draw.circle(surface, COLORS['white'], (int(x), int(y)), vertice_rad, 2)
-            
-            num_surf = FONT_BOLD.render(str(i + 1), True, COLORS['white'])
-            surface.blit(num_surf, (int(x) - num_surf.get_width() // 2,
-                                    int(y) - num_surf.get_height() // 2))
-        
-        # Texto informativo debajo de la preview
-        info_text = f"Mostrando {num_vertices} vértices"
-        info_surf = FONT_SMALL.render(info_text, True, COLORS['gray'])
-        surface.blit(info_surf, (center_x - info_surf.get_width() // 2, center_y + radius + 30))
-    
+
+            num_surf = FONT_BOLD.render(str(i+1), True, COLORS['white'])
+            surface.blit(num_surf, (int(x)-num_surf.get_width()//2,
+                                    int(y)-num_surf.get_height()//2))
+
+        # Texto informativo
+        info = FONT_SMALL.render(f"Mostrando {num_vertices} vértices", True, COLORS['gray'])
+        surface.blit(info, (center_x - info.get_width()//2, center_y + radius + 30))
+
     def update(self, mouse_pos, dt):
         self.btn_mode1.update(mouse_pos)
         self.btn_mode2.update(mouse_pos)
         self.btn_reset.update(mouse_pos)
         self.btn_back.update(mouse_pos)
-    
+
     def handle_event(self, event):
-        if self.btn_mode1.handle_event(event):
-            return "MODE1"
-        elif self.btn_mode2.handle_event(event):
-            return "MODE2"
-        elif self.btn_reset.handle_event(event):
-            return "RESET"
-        elif self.btn_back.handle_event(event):
-            return "BACK"
+        if self.btn_mode1.handle_event(event): return "MODE1"
+        if self.btn_mode2.handle_event(event): return "MODE2"
+        if self.btn_reset.handle_event(event): return "RESET"
+        if self.btn_back.handle_event(event): return "BACK"
         return None
 
 # ==============================================================================
