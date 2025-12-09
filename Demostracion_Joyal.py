@@ -231,76 +231,76 @@ class NSelectionScreen:
         self.error_message = ""
         self.selected_n = 6
         
-def draw(self, surface):
-    # Fondo general
-    surface.fill(COLORS['background'])
+    def draw(self, surface):
+        # Fondo general
+        surface.fill(COLORS['background'])
 
-    # Encabezado
-    header_rect = pygame.Rect(0, 0, WIDTH, 130)
-    pygame.draw.rect(surface, COLORS['header'], header_rect)
+        # Encabezado
+        header_rect = pygame.Rect(0, 0, WIDTH, 130)
+        pygame.draw.rect(surface, COLORS['header'], header_rect)
 
-    # Título
-    title_surf = FONT_TITLE.render(self.title, True, COLORS['white'])
-    surface.blit(title_surf, (WIDTH//2 - title_surf.get_width()//2, 30))
+        # Título
+        title_surf = FONT_TITLE.render(self.title, True, COLORS['white'])
+        surface.blit(title_surf, (WIDTH//2 - title_surf.get_width()//2, 30))
 
-    # Subtítulo
-    subtitle_surf = FONT_SUBTITLE.render(self.subtitle, True, COLORS['light'])
-    surface.blit(subtitle_surf, (WIDTH//2 - subtitle_surf.get_width()//2, 80))
+        # Subtítulo
+        subtitle_surf = FONT_SUBTITLE.render(self.subtitle, True, COLORS['light'])
+        surface.blit(subtitle_surf, (WIDTH//2 - subtitle_surf.get_width()//2, 80))
 
-    # Panel central (más grande y con más aire)
-    panel_rect = pygame.Rect(WIDTH//2 - 320, 170, 640, 420)
-    pygame.draw.rect(surface, COLORS['white'], panel_rect, border_radius=15)
-    pygame.draw.rect(surface, COLORS['accent'], panel_rect, 3, border_radius=15)
+        # Panel central (más grande y con más aire)
+        panel_rect = pygame.Rect(WIDTH//2 - 320, 170, 640, 420)
+        pygame.draw.rect(surface, COLORS['white'], panel_rect, border_radius=15)
+        pygame.draw.rect(surface, COLORS['accent'], panel_rect, 3, border_radius=15)
 
-    # Icono (bajado y centrado)
-    icon_rect = pygame.Rect(WIDTH//2 - 45, 190, 90, 90)
-    pygame.draw.circle(surface, COLORS['info'], icon_rect.center, 45)
-    icon_txt = FONT_TITLE.render("T", True, COLORS['white'])
-    surface.blit(icon_txt, (icon_rect.centerx - icon_txt.get_width()//2,
-                            icon_rect.centery - icon_txt.get_height()//2))
+        # Icono (bajado y centrado)
+        icon_rect = pygame.Rect(WIDTH//2 - 45, 190, 90, 90)
+        pygame.draw.circle(surface, COLORS['info'], icon_rect.center, 45)
+        icon_txt = FONT_TITLE.render("T", True, COLORS['white'])
+        surface.blit(icon_txt, (icon_rect.centerx - icon_txt.get_width()//2,
+                                icon_rect.centery - icon_txt.get_height()//2))
 
-    # Instrucciones (más separación)
-    instructions = [
-        "Ingrese el número de vértices (n).",
-        "Cayley: número de árboles = n^(n−2).",
-        "",
-        "Valores recomendados: 3 a 15 vértices"
-    ]
+        # Instrucciones (más separación)
+        instructions = [
+            "Ingrese el número de vértices (n).",
+            "Cayley: número de árboles = n^(n−2).",
+            "",
+            "Valores recomendados: 3 a 15 vértices"
+        ]
 
-    base_y = 300
-    for i, line in enumerate(instructions):
-        text = FONT_REGULAR.render(line, True, COLORS['dark'])
-        surface.blit(text, (WIDTH//2 - text.get_width()//2, base_y + i * 28))
+        base_y = 300
+        for i, line in enumerate(instructions):
+            text = FONT_REGULAR.render(line, True, COLORS['dark'])
+            surface.blit(text, (WIDTH//2 - text.get_width()//2, base_y + i * 28))
 
-    # Input (bajado)
-    self.n_input.rect.y = 390
-    self.n_input.draw(surface)
+        # Input (bajado)
+        self.n_input.rect.y = 390
+        self.n_input.draw(surface)
 
-    # Botón continuar (aún más abajo)
-    self.confirm_btn.rect.y = 470
-    self.confirm_btn.draw(surface)
+        # Botón continuar (aún más abajo)
+        self.confirm_btn.rect.y = 470
+        self.confirm_btn.draw(surface)
 
-    # Error
-    if self.error_message:
-        err = FONT_SMALL.render(self.error_message, True, COLORS['danger'])
-        surface.blit(err, (WIDTH//2 - err.get_width()//2, 520))
+        # Error
+        if self.error_message:
+            err = FONT_SMALL.render(self.error_message, True, COLORS['danger'])
+            surface.blit(err, (WIDTH//2 - err.get_width()//2, 520))
 
-    # Resultado fórmula (bien separado)
-    try:
-        temp_n = int(self.n_input.get_value() or "6")
-        if 2 <= temp_n <= 20:
-            result = FONT_BOLD.render(
-                f"n = {temp_n}: {temp_n}^({temp_n}-2) = {temp_n**(temp_n-2):,} árboles",
-                True, COLORS['success']
-            )
-            surface.blit(result, (WIDTH//2 - result.get_width()//2, 560))
-            self.selected_n = temp_n
-    except:
-        pass
+        # Resultado fórmula (bien separado)
+        try:
+            temp_n = int(self.n_input.get_value() or "6")
+            if 2 <= temp_n <= 20:
+                result = FONT_BOLD.render(
+                    f"n = {temp_n}: {temp_n}^({temp_n}-2) = {temp_n**(temp_n-2):,} árboles",
+                    True, COLORS['success']
+                )
+                surface.blit(result, (WIDTH//2 - result.get_width()//2, 560))
+                self.selected_n = temp_n
+        except:
+            pass
 
-    # Botón info
-    self.info_btn.draw(surface)
-    
+        # Botón info
+        self.info_btn.draw(surface)
+
     def update(self, mouse_pos, dt):
         self.n_input.update(dt)
         self.confirm_btn.update(mouse_pos)
