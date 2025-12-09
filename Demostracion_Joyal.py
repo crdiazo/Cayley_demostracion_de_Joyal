@@ -1263,7 +1263,7 @@ class FunctionToTreeMode:
         if self.btn_send.handle_event(event):
             ok = self.process_function()
             if ok:
-                self.stage = "function"
+                self.stage = "function"      # <- OBLIGATORIO
             return None
         if self.btn_generate.handle_event(event):
             if not self.function:
