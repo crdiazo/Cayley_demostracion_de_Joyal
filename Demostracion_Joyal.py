@@ -390,7 +390,7 @@ class MainMenuScreen:
         surface.blit(formula, (WIDTH//2 - formula.get_width()//2, 90))
 
         # PANEL IZQUIERDO (texto + botones)
-        left_panel = pygame.Rect(self.left_x - 20, 180, self.left_width, 500)
+        left_panel = pygame.Rect(self.left_x - 20, 180, self.left_width, 520)
         pygame.draw.rect(surface, COLORS['white'], left_panel, border_radius=20)
         pygame.draw.rect(surface, COLORS['accent'], left_panel, 3, border_radius=20)
 
@@ -403,12 +403,12 @@ class MainMenuScreen:
             "Seleccione un modo de operación:"
         ]
 
-        base_y = 210
+        base_y = 230
         for i, line in enumerate(desc_lines):
             line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
             surface.blit(line_surf,
                          (self.left_x + self.left_width//2 - line_surf.get_width()//2,
-                          base_y + i * 28))
+                          base_y + i * 30))
 
         # Botones
         self.btn_mode1.draw(surface)
