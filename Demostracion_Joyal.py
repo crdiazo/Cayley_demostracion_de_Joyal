@@ -267,17 +267,17 @@ class NSelectionScreen:
             "Valores recomendados: 3 a 15 vértices"
         ]
 
-        base_y = 300
+        base_y = 310  # ← SUBÍ el texto 10px
         for i, line in enumerate(instructions):
             text = FONT_REGULAR.render(line, True, COLORS['dark'])
             surface.blit(text, (WIDTH//2 - text.get_width()//2, base_y + i * 28))
 
-        # Input (bajado)
-        self.n_input.rect.y = 390
+        # Input (más abajo, para despegarlo)
+        self.n_input.rect.y = 405   # ← BAJÉ el input 15px
         self.n_input.draw(surface)
 
-        # Botón continuar (aún más abajo)
-        self.confirm_btn.rect.y = 470
+        # Botón continuar (también baja un poco)
+        self.confirm_btn.rect.y = 490  # ← BAJÉ 20px
         self.confirm_btn.draw(surface)
 
         # Error
