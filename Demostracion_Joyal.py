@@ -1208,7 +1208,7 @@ class JoyalApplication:
         # Pantallas
         self.n_selection_screen = NSelectionScreen()
         self.main_menu_screen = MainMenuScreen()
-        self.tree_to_func_screen = TreeToFunctionMode()
+        self.tree_to_func_screen = Modo1Pantalla()
         self.func_to_tree_screen = FunctionToTreeMode()
         
         # Inicializar con n=6
