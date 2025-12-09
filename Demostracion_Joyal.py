@@ -407,7 +407,7 @@ class MainMenuScreen:
         for i, line in enumerate(desc_lines):
             line_surf = FONT_REGULAR.render(line, True, COLORS['dark'])
             surface.blit(line_surf,
-                         (self.left_x + self.left_width//2 - line_surf.get_width()//2,
+                         (self.left_x + (self.left_width - line_surf.get_width()) // 2,
                           base_y + i * 28))
 
         # Botones
@@ -422,7 +422,7 @@ class MainMenuScreen:
     def draw_vertices_preview(self, surface):
         # Círculo centrado a la derecha
         center_x = WIDTH - 350
-        center_y = 430
+        center_y = 480
 
         # Radio dinámico
         if n <= 8:
