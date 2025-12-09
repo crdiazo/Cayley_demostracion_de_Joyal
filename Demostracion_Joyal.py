@@ -262,7 +262,7 @@ class NSelectionScreen:
         pygame.draw.rect(surface, COLORS['info'], header_rect, border_radius=20)
 
         # Texto dentro del nuevo encabezado
-        header_text = FONT_REGULAR.render("Demostración mediante el método de Joyal", True, COLORS['white'])
+        header_text = FONT_REGULAR.render("DEMOSTRACIÓN MEDIANTE EL MÉTODO DE JOYAL", True, COLORS['white'])
         surface.blit(header_text, (WIDTH//2 - header_text.get_width()//2,
                                 header_y + header_h//2 - header_text.get_height()//2))
 
@@ -1572,3 +1572,4 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
+
