@@ -252,12 +252,19 @@ class NSelectionScreen:
         pygame.draw.rect(surface, COLORS['white'], panel_rect, border_radius=15)
         pygame.draw.rect(surface, COLORS['accent'], panel_rect, 3, border_radius=15)
 
-        # Icono (bajado y centrado)
-        icon_rect = pygame.Rect(WIDTH//2 - 45, 190, 90, 90)
-        pygame.draw.circle(surface, COLORS['info'], icon_rect.center, 45)
-        icon_txt = FONT_TITLE.render("T", True, COLORS['white'])
-        surface.blit(icon_txt, (icon_rect.centerx - icon_txt.get_width()//2,
-                                icon_rect.centery - icon_txt.get_height()//2))
+        # --- Encabezado dentro del panel (rectángulo en vez de círculo) ---
+        header_w = 500
+        header_h = 70
+        header_x = WIDTH//2 - header_w//2
+        header_y = 195
+
+        header_rect = pygame.Rect(header_x, header_y, header_w, header_h)
+        pygame.draw.rect(surface, COLORS['info'], header_rect, border_radius=20)
+
+        # Texto dentro del nuevo encabezado
+        header_text = FONT_REGULAR.render("Demostración mediante el método de Joyal", True, COLORS['white'])
+        surface.blit(header_text, (WIDTH//2 - header_text.get_width()//2,
+                                header_y + header_h//2 - header_text.get_height()//2))
 
         # Instrucciones (limpias, sin recomendación)
         instructions = [
@@ -1565,4 +1572,3 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
-
