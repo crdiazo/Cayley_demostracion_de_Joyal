@@ -1317,11 +1317,6 @@ class FunctionToTreeMode:
                 if (v, fv) not in self.tree_edges and (fv, v) not in self.tree_edges:
                     self.tree_edges.append((v, fv))
 
-        # *** CORRECCIÓN CLAVE ***
-        # eliminar las aristas de la vértebra del conjunto de ramas
-        self.tree_edges = [e for e in self.tree_edges 
-                        if e not in self.spine_edges and (e[1], e[0]) not in self.spine_edges]
-
         self.stage = "tree"
         self.error_message = ""
         return True
