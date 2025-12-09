@@ -353,8 +353,8 @@ class MainMenuScreen:
         self.title = f"DEMOSTRACIÓN DE JOYAL - n = {n}"
 
         # Panel izquierdo (botones + texto)
-        self.left_x = 60
-        self.left_width = 500
+        self.left_x = 70
+        self.left_width = 550
 
         # Botones principales
         self.btn_mode1 = ProfessionalButton(self.left_x + 100, 360, 300, 80,
@@ -390,9 +390,9 @@ class MainMenuScreen:
         surface.blit(formula, (WIDTH//2 - formula.get_width()//2, 90))
 
         # PANEL IZQUIERDO (texto + botones)
-        left_panel = pygame.Rect(self.left_x - 25, 180, self.left_width, 520)
-        pygame.draw.rect(surface, COLORS['white'], left_panel, border_radius=25)
-        pygame.draw.rect(surface, COLORS['accent'], left_panel, 3, border_radius=25)
+        left_panel = pygame.Rect(self.left_x - 20, 180, self.left_width, 520)
+        pygame.draw.rect(surface, COLORS['white'], left_panel, border_radius=20)
+        pygame.draw.rect(surface, COLORS['accent'], left_panel, 3, border_radius=20)
 
         # Texto explicativo
         desc_lines = [
@@ -1571,4 +1571,3 @@ if __name__ == "__main__":
     
     app = JoyalApplication()
     app.run()
-
