@@ -743,7 +743,7 @@ class TreeToFunctionMode:
         steps = ["1. Construir", "2. Inicio", "3. Fin", "4. Listo"]
         # Ubicar indicador ligeramente por encima de los botones inferiores
         x = WIDTH // 2 - 300
-        y = HEIGHT - 165
+        y = HEIGHT - 185
 
         for i in range(4):
             color = COLORS["gray"]
