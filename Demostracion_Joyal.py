@@ -1293,65 +1293,29 @@ class FunctionToTreeMode:
             self.error_message = "Primero envíe una función válida."
             return False
 
-        # Esto asegura que n, cycles_list, etc., estén actualizados
         if not hasattr(self, "_cycles_list"):
             self._detect_cycles_ordered()
 
         self.tree_edges = []
         self.spine_edges = []
-        n = self.n
-        
-        # Usaremos sets para una verificación rápida de existencia y evitar duplicados
-        tree_edges_set = set()
-        spine_edges_set = set()
 
-        # Función de utilidad para obtener la arista en formato ordenado (no dirigido)
-        def get_sorted_edge(u, v):
-            return tuple(sorted((u, v)))
-
-        # 1. Construir vértebra (Aristas de los ciclos)
+        # construir vértebra como camino
         for cyc in self._cycles_list:
-            if len(cyc) > 0:
-                # El ciclo tiene aristas dirigidas c[i] -> f(c[i]), que es c[(i+1)%len]
-                for i in range(len(cyc)):
-                    u = cyc[i]
-                    v = cyc[(i + 1) % len(cyc)]
-                    
-                    # Convertir a arista no dirigida (ordenada)
-                    edge = get_sorted_edge(u, v)
+            if len(cyc) > 1:
+                for i in range(len(cyc) - 1):
+                    a = cyc[i]
+                    b = cyc[i + 1]
+                    if (a, b) not in self.spine_edges and (b, a) not in self.spine_edges:
+                        self.spine_edges.append((a, b))
+                    if (a, b) not in self.tree_edges and (b, a) not in self.tree_edges:
+                        self.tree_edges.append((a, b))
 
-                    if edge not in spine_edges_set:
-                        spine_edges_set.add(edge)
-                    
-                    # Agregar al set general del árbol
-                    if edge not in tree_edges_set:
-                        tree_edges_set.add(edge)
-
-        # 2. Ramas v → f(v) para vértices no en ciclos
+        # ramas v → f(v)
         for v in self.vertices_not_in_cycles:
             fv = self.function[v]
             if 0 <= fv < n:
-                # El bucle (v == fv) en un nodo no cíclico (rama) no se convierte en arista de árbol.
-                if v == fv:
-                    continue
-                
-                # Arista del árbol (no dirigida)
-                edge = get_sorted_edge(v, fv)
-                
-                # Agregar al set general del árbol
-                if edge not in tree_edges_set:
-                    tree_edges_set.add(edge)
-
-        # Convertir sets a listas para el dibujo
-        self.tree_edges = list(tree_edges_set)
-        self.spine_edges = list(spine_edges_set)
-        
-        # El problema debe ser resuelto ahora ya que spine_edges contiene los pares
-        # ordenados correctos y draw_tree los utiliza.
-
-        if self._debug:
-             print("Tree Edges (pares no dirigidos):", [(e[0]+1, e[1]+1) for e in self.tree_edges])
-             print("Spine Edges (pares no dirigidos):", [(e[0]+1, e[1]+1) for e in self.spine_edges])
+                if (v, fv) not in self.tree_edges and (fv, v) not in self.tree_edges:
+                    self.tree_edges.append((v, fv))
 
         self.stage = "tree"
         self.error_message = ""
