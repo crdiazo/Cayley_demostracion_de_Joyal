@@ -921,17 +921,18 @@ class TreeToFunctionMode:
         self.compute_vertex_positions()
 
 # =======================================================================
-# MODO 2: FUNCIÓN → ÁRBOL (versión mejorada, lista para pegar)
+# MODO 2: FUNCIÓN → ÁRBOL (versión final profesional)
 # =======================================================================
 class FunctionToTreeMode:
     def __init__(self):
         self.title = "MODO 2: FUNCIÓN → ÁRBOL"
 
-        # CARD / INPUT (anchura pensada para WIDTH=1280)
+        # CARD DEL INPUT
         self.card_rect = pygame.Rect(36, 72, WIDTH - 72, 160)
-        input_w = 900
+
         input_x = self.card_rect.x + 24
         input_y = self.card_rect.y + 62
+        input_w = 900
 
         self.func_input = InputField(
             input_x, input_y, input_w, 44,
@@ -939,240 +940,221 @@ class FunctionToTreeMode:
             "Ejemplo: 2,3,1,5,5,4"
         )
 
-        # botones alineados dentro de la card (ENVIAR = ver/mostrar, CONSTRUIR = generar árbol)
+        # Botones dentro de la tarjeta
         btn_y = input_y + 58
         self.btn_send     = ProfessionalButton(input_x,           btn_y, 140, 44, "ENVIAR",    COLORS['info'])
         self.btn_generate = ProfessionalButton(input_x + 158,     btn_y, 160, 44, "CONSTRUIR", COLORS['success'])
         self.btn_clear    = ProfessionalButton(input_x + 340,     btn_y, 140, 44, "LIMPIAR",   COLORS['warning'])
         self.btn_back     = ProfessionalButton(20, 20, 120, 40, "← MENÚ", COLORS['gray'])
 
-        # Panels
-        self.info_rect = pygame.Rect(36, 260, 360, HEIGHT - 320)            # izquierda
-        self.graph_rect = pygame.Rect(self.info_rect.right + 24, 260,
-                                      WIDTH - (self.info_rect.right + 36), HEIGHT - 320)  # derecha
+        # PANEL IZQUIERDO
+        self.info_rect = pygame.Rect(36, 260, 360, HEIGHT - 320)
 
-        # Estado / datos
-        self.function = []                 # lista 0-indexed: f[i] = j
-        self._cycles_list = []             # lista de ciclos (cada ciclo lista de vértices 0-indexed)
-        self.vertices_in_cycles = []       # flatten de vértices en ciclos, orden preservado
-        self.vertices_not_in_cycles = []   # los demás
-        self.tree_edges = []               # aristas del árbol final (tuplas 0-indexed)
-        self.spine_edges = []              # aristas pertenecientes a la vértebra (ordenadas)
-        self.error_message = ""
-        self.stage = "idle"                # "idle", "function", "tree"
+        # PANEL DERECHO (GRÁFICO)
+        self.graph_rect = pygame.Rect(
+            self.info_rect.right + 24,
+            260,
+            WIDTH - (self.info_rect.right + 36),
+            HEIGHT - 320
+        )
 
-        # posiciones calculadas localmente para dibujar en graph_rect
+        # Estado interno
+        self.function = []
+        self._cycles_list = []
+        self.vertices_in_cycles = []
+        self.vertices_not_in_cycles = []
+        self.tree_edges = []
+        self.spine_edges = []
         self.vertex_pos = []
+        self.error_message = ""
+        self.stage = "idle"
 
-        # Debug si quieres prints
         self._debug = False
 
-    # -----------------------------
-    # Calcula posiciones dentro de graph_rect (centrado, radio dinámico)
-    # -----------------------------
+    # ------------------------------------
+    # POSICIONES
+    # ------------------------------------
     def compute_positions(self):
         area = self.graph_rect
-        cx = area.x + area.w // 2
-        cy = area.y + area.h // 2
+        cx = area.x + area.w//2
+        cy = area.y + area.h//2
 
-        # margen para etiquetas/flechas
-        margin = 70
-        R = min(area.w, area.h) // 2 - margin
-        R = max(R, 60)
+        R = min(area.w, area.h)//2 - 70
+        R = max(R, 50)
 
-        # Ajuste si n enorme
         if n > 30:
-            # reducir radio para que no se salga
             R = int(R * 0.8)
 
         self.vertex_pos = []
         for i in range(n):
-            ang = 2 * math.pi * i / max(1, n) - math.pi/2
-            x = int(cx + R * math.cos(ang))
-            y = int(cy + R * math.sin(ang))
+            ang = 2*math.pi * i/n - math.pi/2
+            x = int(cx + R*math.cos(ang))
+            y = int(cy + R*math.sin(ang))
             self.vertex_pos.append((x, y))
 
-        if self._debug:
-            print("compute_positions R:", R, "center:", (cx, cy))
-
-    # -----------------------------
-    # DIBUJO / UI
-    # -----------------------------
+    # ------------------------------------
+    # DRAW GENERAL
+    # ------------------------------------
     def draw(self, surface):
         surface.fill(COLORS['background'])
 
-        # header
+        # HEADER
         header = pygame.Rect(0, 0, WIDTH, 64)
         pygame.draw.rect(surface, COLORS['header'], header)
         htext = FONT_TITLE.render(self.title, True, COLORS['white'])
         surface.blit(htext, (WIDTH//2 - htext.get_width()//2, 10))
 
-        # input card
+        # CARD
         pygame.draw.rect(surface, COLORS['white'], self.card_rect, border_radius=12)
         pygame.draw.rect(surface, COLORS['light'], self.card_rect, 2, border_radius=12)
+
         lbl = FONT_REGULAR.render("f(V):", True, COLORS['dark'])
         surface.blit(lbl, (self.card_rect.x + 18, self.card_rect.y + 16))
+
         self.func_input.draw(surface)
 
-        # botones de la card
+        # Botones
         self.btn_back.draw(surface)
         self.btn_send.draw(surface)
         self.btn_generate.draw(surface)
         self.btn_clear.draw(surface)
 
-        # mensaje de error dentro de la card
         if self.error_message:
             err = FONT_SMALL.render(self.error_message, True, COLORS['danger'])
             surface.blit(err, (self.card_rect.x + 18, self.card_rect.y + self.card_rect.height - 30))
 
-        # izquierdo: info panel
+        # PANEL IZQUIERDO
         pygame.draw.rect(surface, COLORS['white'], self.info_rect, border_radius=12)
         pygame.draw.rect(surface, COLORS['light'], self.info_rect, 2, border_radius=12)
+
         title = FONT_BOLD.render("INFORMACIÓN", True, COLORS['dark'])
         surface.blit(title, (self.info_rect.x + 16, self.info_rect.y + 12))
+
         if self.function:
             self.draw_info(surface)
         else:
-            hint = FONT_SMALL.render("Pulse ENVIAR para visualizar f(V).", True, COLORS['gray'])
-            surface.blit(hint, (self.info_rect.x + 16, self.info_rect.y + 48))
+            txt = FONT_SMALL.render("Pulse ENVIAR para visualizar f(V).", True, COLORS['gray'])
+            surface.blit(txt, (self.info_rect.x + 16, self.info_rect.y + 48))
 
-        # derecha: panel gráfico
+        # PANEL DERECHO
         pygame.draw.rect(surface, COLORS['white'], self.graph_rect, border_radius=12)
         pygame.draw.rect(surface, COLORS['light'], self.graph_rect, 2, border_radius=12)
 
-        # dibujar según etapa
         if self.stage == "function":
             self.draw_function(surface)
         elif self.stage == "tree":
             self.draw_tree(surface)
         else:
-            # si estamos idle, mostrar ayuda dentro del panel gráfico
-            hint2 = FONT_SMALL.render("Aquí se mostrará la función o el árbol generado.", True, COLORS['gray'])
-            surface.blit(hint2, (self.graph_rect.centerx - hint2.get_width()//2,
-                                 self.graph_rect.centery - hint2.get_height()//2))
+            t = FONT_SMALL.render("Aquí se dibujará la función o el árbol.", True, COLORS['gray'])
+            surface.blit(t, (self.graph_rect.centerx - t.get_width()//2,
+                             self.graph_rect.centery - t.get_height()//2))
 
-    # -----------------------------
-    # Dibuja la información en panel izquierdo (incluye tabla estilo 'excel')
-    # -----------------------------
+    # ------------------------------------
+    # INFORMACIÓN DEL PANEL IZQUIERDO
+    # ------------------------------------
     def draw_info(self, surface):
         x = self.info_rect.x + 16
         y = self.info_rect.y + 44
 
-        # mostrar la función completa con índice 1-based
         ftext = "f(V) = [" + ", ".join(str(v+1) for v in self.function) + "]"
         surface.blit(FONT_SMALL.render(ftext, True, COLORS['dark']), (x, y))
         y += 28
 
-        # vértebra
         if self.vertices_in_cycles:
-            spine_txt = "Vértebra: " + " - ".join(str(v+1) for v in self.vertices_in_cycles)
-            surface.blit(FONT_SMALL.render(spine_txt, True, COLORS['spine']), (x, y))
-            y += 26
+            s = "Vértebra: " + " - ".join(str(v+1) for v in self.vertices_in_cycles)
+            surface.blit(FONT_SMALL.render(s, True, COLORS['spine']), (x, y))
         else:
             surface.blit(FONT_SMALL.render("Vértebra: —", True, COLORS['gray']), (x, y))
-            y += 26
+        y += 26
 
-        # otros
         if self.vertices_not_in_cycles:
-            others_txt = "Otros vértices: " + ", ".join(str(v+1) for v in self.vertices_not_in_cycles)
-            surface.blit(FONT_SMALL.render(others_txt, True, COLORS['dark']), (x, y))
-            y += 26
+            s = "Otros vértices: " + ", ".join(str(v+1) for v in self.vertices_not_in_cycles)
+            surface.blit(FONT_SMALL.render(s, True, COLORS['dark']), (x, y))
         else:
             surface.blit(FONT_SMALL.render("Otros vértices: —", True, COLORS['gray']), (x, y))
-            y += 26
+        y += 26
 
-        # Permutación (ciclos)
         perm = self.get_permutation()
         surface.blit(FONT_SMALL.render("Permutación: " + perm, True, COLORS['dark']), (x, y))
-        y += 28
+        y += 30
 
-        # Tabla f(V) (estilo compacto tipo Excel)
+        # TABLA EXCEL
         surface.blit(FONT_BOLD.render("Tabla f(V):", True, COLORS['dark']), (x, y))
         y += 24
 
-        # encabezados
-        col_v = x
-        col_f = x + 60
-        surface.blit(FONT_TINY.render("V", True, COLORS['dark']), (col_v, y))
-        surface.blit(FONT_TINY.render("f(V)", True, COLORS['dark']), (col_f, y))
-        y += 18
-        pygame.draw.line(surface, COLORS['light'], (col_v, y-6), (self.info_rect.right - 14, y-6), 1)
+        col1 = x
+        col2 = x + 60
 
-        # filas (hasta 12)
-        max_rows = min(n, 12)
-        for i in range(max_rows):
-            fv = self.function[i]
-            surface.blit(FONT_TINY.render(str(i+1), True, COLORS['dark']), (col_v, y))
-            surface.blit(FONT_TINY.render(str(fv+1) if fv is not None else "?", True, COLORS['dark']), (col_f, y))
+        surface.blit(FONT_TINY.render("V", True, COLORS['dark']), (col1, y))
+        surface.blit(FONT_TINY.render("f(V)", True, COLORS['dark']), (col2, y))
+        y += 18
+
+        pygame.draw.line(surface, COLORS['light'], (col1, y-6), (self.info_rect.right-16, y-6), 1)
+
+        rows = min(12, n)
+        for i in range(rows):
+            fv = self.function[i] + 1
+            surface.blit(FONT_TINY.render(str(i+1), True, COLORS['dark']), (col1, y))
+            surface.blit(FONT_TINY.render(str(fv), True, COLORS['dark']), (col2, y))
             y += 18
 
-        if n > max_rows:
-            surface.blit(FONT_TINY.render("...", True, COLORS['dark']), (col_v, y))
+        if n > rows:
+            surface.blit(FONT_TINY.render("...", True, COLORS['dark']), (col1, y))
 
-    # -----------------------------
-    # Dibuja la representación funcional (flechas f: i → f(i))
-    # -----------------------------
+    # ------------------------------------
+    # FUNCIÓN f → flechas
+    # ------------------------------------
     def draw_function(self, surface):
-        # calcular posiciones
         self.compute_positions()
 
-        # flechas (primero las flechas para no tapar vértices)
         for i, f in enumerate(self.function):
-            if f is None or f < 0 or f >= n:
-                continue
-            p1 = self.vertex_pos[i]
-            p2 = self.vertex_pos[f]
-            if i == f:
-                self.draw_loop(surface, p1)
+            if f == i:
+                self.draw_loop(surface, self.vertex_pos[i])
             else:
-                self.draw_arrow(surface, p1, p2, COLORS['arrow'])
+                self.draw_arrow(surface, self.vertex_pos[i], self.vertex_pos[f], COLORS['arrow'])
 
-        # vértices encima
+        # nodos
         for i, pos in enumerate(self.vertex_pos):
             pygame.draw.circle(surface, COLORS['vertex'], pos, vertice_rad)
             pygame.draw.circle(surface, COLORS['white'], pos, vertice_rad, 2)
             t = FONT_BOLD.render(str(i+1), True, COLORS['white'])
             surface.blit(t, (pos[0]-t.get_width()//2, pos[1]-t.get_height()//2))
 
-    # -----------------------------
-    # Dibuja el árbol final (spine + ramas)
-    # -----------------------------
+    # ------------------------------------
+    # ÁRBOL (vértebra + ramas)
+    # ------------------------------------
     def draw_tree(self, surface):
-        # calcular posiciones
         self.compute_positions()
 
-        # función para ajustar línea a borde del nodo
-        def line_to_border(a, b):
+        # Ajustar líneas para que no entren al nodo
+        def border(a, b):
             (x1, y1) = self.vertex_pos[a]
             (x2, y2) = self.vertex_pos[b]
-            dx = x2 - x1
-            dy = y2 - y1
+            dx, dy = x2-x1, y2-y1
             L = math.hypot(dx, dy)
-            if L == 0:
-                return (x1, y1), (x2, y2)
-            # evitar que la línea entre al centro del nodo
-            start = (x1 + dx/L * vertice_rad, y1 + dy/L * vertice_rad)
-            end   = (x2 - dx/L * vertice_rad, y2 - dy/L * vertice_rad)
-            return start, end
+            if L == 0: return (x1, y1), (x2, y2)
+            s = vertice_rad
+            return (
+                (x1 + dx/L*s, y1 + dy/L*s),
+                (x2 - dx/L*s, y2 - dy/L*s)
+            )
 
-        # dibujar aristas normales
+        # Aristas normales
         for a, b in self.tree_edges:
-            start, end = line_to_border(a, b)
-            pygame.draw.line(surface, COLORS['edge'], start, end, 3)
+            A, B = border(a, b)
+            pygame.draw.line(surface, COLORS['edge'], A, B, 3)
 
-        # dibujar aristas de la vértebra MÁS gruesas y visibles
+        # Aristas de la vértebra
         for a, b in self.spine_edges:
-            start, end = line_to_border(a, b)
-            pygame.draw.line(surface, COLORS['spine'], start, end, 8)
+            A, B = border(a, b)
+            pygame.draw.line(surface, COLORS['spine'], A, B, 8)
 
-        # flechas orientadas para vértices que no están en ciclos
-        for i in self.vertices_not_in_cycles:
-            fv = self.function[i]
-            if fv is None:
-                continue
-            self.draw_arrow(surface, self.vertex_pos[i], self.vertex_pos[fv], COLORS['arrow'])
+        # Flechas orientadas desde no ciclos
+        for v in self.vertices_not_in_cycles:
+            fv = self.function[v]
+            self.draw_arrow(surface, self.vertex_pos[v], self.vertex_pos[fv], COLORS['arrow'])
 
-        # dibujar nodos encima
+        # Nodos
         for i, pos in enumerate(self.vertex_pos):
             col = COLORS['spine'] if i in self.vertices_in_cycles else COLORS['vertex']
             pygame.draw.circle(surface, col, pos, vertice_rad)
@@ -1180,171 +1162,140 @@ class FunctionToTreeMode:
             t = FONT_BOLD.render(str(i+1), True, COLORS['white'])
             surface.blit(t, (pos[0]-t.get_width()//2, pos[1]-t.get_height()//2))
 
-    # -----------------------------
-    # Flecha con punta (respetando radios)
-    # -----------------------------
+    # ------------------------------------
+    # Flecha
+    # ------------------------------------
     def draw_arrow(self, surface, p1, p2, color):
-        dx = p2[0] - p1[0]
-        dy = p2[1] - p1[1]
+        dx, dy = p2[0]-p1[0], p2[1]-p1[1]
         L = math.hypot(dx, dy)
-        if L < 1e-6:
-            return
+        if L <= 1e-6: return
+
         s = vertice_rad
-        start = (p1[0] + dx / L * s, p1[1] + dy / L * s)
-        end   = (p2[0] - dx / L * s, p2[1] - dy / L * s)
+        start = (p1[0] + dx/L*s, p1[1] + dy/L*s)
+        end   = (p2[0] - dx/L*s, p2[1] - dy/L*s)
+
         pygame.draw.line(surface, color, start, end, 3)
+
         ang = math.atan2(dy, dx)
-        arrow_size = 10
-        left  = (end[0] - arrow_size * math.cos(ang - math.pi/6), end[1] - arrow_size * math.sin(ang - math.pi/6))
-        right = (end[0] - arrow_size * math.cos(ang + math.pi/6), end[1] - arrow_size * math.sin(ang + math.pi/6))
+        size = 12
+        left  = (end[0] - size*math.cos(ang-math.pi/6),
+                 end[1] - size*math.sin(ang-math.pi/6))
+        right = (end[0] - size*math.cos(ang+math.pi/6),
+                 end[1] - size*math.sin(ang+math.pi/6))
         pygame.draw.polygon(surface, color, [end, left, right])
 
     def draw_loop(self, surface, pos):
-        # pequeño arco encima del vértice para bucle
-        rx, ry = 18, 12
-        rect = pygame.Rect(pos[0] - rx, pos[1] - ry - vertice_rad - 4, rx*2, ry*2)
-        pygame.draw.arc(surface, COLORS['arrow'], rect, math.radians(10), math.radians(350), 3)
+        r = 16
+        rect = pygame.Rect(pos[0]-r, pos[1]-r-vertice_rad, 2*r, 2*r)
+        pygame.draw.arc(surface, COLORS['arrow'], rect, 0.2, 6.0, 3)
 
-    # -----------------------------
-    # Procesa el texto ingresado por el usuario (ENVIAR)
-    # -----------------------------
+    # ------------------------------------
+    # PROCESAR FUNCIÓN
+    # ------------------------------------
     def process_function(self):
         txt = self.func_input.get_value().strip()
         if not txt:
             self.error_message = "Ingrese la función."
             return False
+
         try:
-            vals = [int(x.strip()) for x in txt.split(",") if x.strip() != ""]
+            vals = [int(x.strip()) for x in txt.split(",") if x.strip()]
         except:
-            self.error_message = "Formato inválido: use números separados por comas."
+            self.error_message = "Formato inválido."
             return False
+
         if len(vals) != n:
             self.error_message = f"Debe ingresar exactamente {n} valores."
             return False
+
         if any(v < 1 or v > n for v in vals):
-            self.error_message = f"Valores deben estar entre 1 y {n}."
+            self.error_message = f"Los valores deben estar entre 1 y {n}."
             return False
 
-        # Convertir a 0-indexed
         self.function = [v-1 for v in vals]
         self.error_message = ""
-        # detectar ciclos (ordenado)
         self._detect_cycles_ordered()
-        # reset prev tree
         self.tree_edges = []
         self.spine_edges = []
         self.stage = "function"
-        if self._debug:
-            print("process_function OK. cycles:", [[x+1 for x in c] for c in self._cycles_list])
         return True
 
-    # -----------------------------
-    # Detecta ciclos y preserva orden: guarda _cycles_list y vertices_in_cycles
-    # -----------------------------
+    # ------------------------------------
+    # DETECTAR CICLOS (ORDENADO)
+    # ------------------------------------
     def _detect_cycles_ordered(self):
-        visited = [False] * n
+        visited = [False]*n
         cycles = []
-        non_cycles_accum = []
+        nocycle = []
 
         for i in range(n):
-            if visited[i]:
-                continue
-            cur = i
+            if visited[i]: continue
             stack = []
-            idx_map = {}
+            idx = {}
+            cur = i
+
             while not visited[cur]:
                 visited[cur] = True
-                idx_map[cur] = len(stack)
+                idx[cur] = len(stack)
                 stack.append(cur)
                 cur = self.function[cur]
-            # Si volvimos a un nodo del stack -> ciclo
-            if cur in idx_map:
-                start = idx_map[cur]
-                cycle = stack[start:]
-                cycles.append(cycle)
-                # nodos previos al ciclo (si hay) son no-ciclo que conducen al ciclo
-                prefix = stack[:start]
-                if prefix:
-                    non_cycles_accum.extend(prefix)
+
+            if cur in idx:
+                start = idx[cur]
+                cyc = stack[start:]
+                cycles.append(cyc)
+                nocycle.extend(stack[:start])
             else:
-                # toda la pila es no-ciclo que termina en región ya visitada
-                non_cycles_accum.extend(stack)
+                nocycle.extend(stack)
 
-        # guardar
         self._cycles_list = cycles
-        ordered_vertices = []
-        for cyc in cycles:
-            for v in cyc:
-                if v not in ordered_vertices:
-                    ordered_vertices.append(v)
-        self.vertices_in_cycles = ordered_vertices
-        self.vertices_not_in_cycles = [i for i in range(n) if i not in set(self.vertices_in_cycles)]
+        self.vertices_in_cycles = [v for cyc in cycles for v in cyc]
+        self.vertices_not_in_cycles = [i for i in range(n) if i not in self.vertices_in_cycles]
 
-        if self._debug:
-            print("_detect_cycles_ordered -> cycles:", [[x+1 for x in c] for c in cycles])
-            print("in_cycles:", [v+1 for v in self.vertices_in_cycles],
-                  "not_in:", [v+1 for v in self.vertices_not_in_cycles])
-
-    # -----------------------------
-    # Construye el árbol a partir de la función (CONSTRUIR botón)
-    # -----------------------------
+    # ------------------------------------
+    # CONSTRUIR ÁRBOL
+    # ------------------------------------
     def construct_tree_from_function(self):
         if not self.function:
             self.error_message = "Primero envíe una función válida."
             return False
 
-        if not hasattr(self, "_cycles_list"):
-            self._detect_cycles_ordered()
-
         self.tree_edges = []
         self.spine_edges = []
 
-        # construir vértebra como camino
+        # <<<<<<<<<<<  CORRECTO: CICLO CERRADO  >>>>>>>>>>>
         for cyc in self._cycles_list:
-            if len(cyc) > 1:
-                for i in range(len(cyc) - 1):
+            L = len(cyc)
+            if L > 1:
+                for i in range(L):
                     a = cyc[i]
-                    b = cyc[i + 1]
-                    if (a, b) not in self.spine_edges and (b, a) not in self.spine_edges:
-                        self.spine_edges.append((a, b))
+                    b = cyc[(i+1) % L]  # cierre del ciclo
                     if (a, b) not in self.tree_edges and (b, a) not in self.tree_edges:
                         self.tree_edges.append((a, b))
+                    if (a, b) not in self.spine_edges and (b, a) not in self.spine_edges:
+                        self.spine_edges.append((a, b))
 
-        # ramas v → f(v)
+        # ramas
         for v in self.vertices_not_in_cycles:
             fv = self.function[v]
-            if 0 <= fv < n:
-                if (v, fv) not in self.tree_edges and (fv, v) not in self.tree_edges:
-                    self.tree_edges.append((v, fv))
+            if (v, fv) not in self.tree_edges and (fv, v) not in self.tree_edges:
+                self.tree_edges.append((v, fv))
 
         self.stage = "tree"
-        self.error_message = ""
         return True
 
-    # -----------------------------
-    # Devuelve notación de permutación (ciclos)
-    # -----------------------------
+    # ------------------------------------
+    # PERMUTACIÓN
+    # ------------------------------------
     def get_permutation(self):
-        if hasattr(self, "_cycles_list") and self._cycles_list:
-            return " ".join("(" + " ".join(str(x+1) for x in cyc) + ")" for cyc in self._cycles_list)
-        # fallback: intentar construir ciclos
-        visited = [False] * n
-        cycles = []
-        for i in range(n):
-            if visited[i]:
-                continue
-            cur = i
-            cyc = []
-            while not visited[cur]:
-                visited[cur] = True
-                cyc.append(cur+1)
-                cur = self.function[cur]
-            cycles.append(cyc)
-        return " ".join("(" + " ".join(map(str, c)) + ")" for c in cycles)
+        return " ".join(
+            "(" + " ".join(str(v+1) for v in cyc) + ")"
+            for cyc in self._cycles_list
+        )
 
-    # -----------------------------
-    # update / events
-    # -----------------------------
+    # ------------------------------------
+    # UPDATE / EVENTOS
+    # ------------------------------------
     def update(self, mouse_pos, dt):
         self.btn_back.update(mouse_pos)
         self.btn_send.update(mouse_pos)
@@ -1357,32 +1308,28 @@ class FunctionToTreeMode:
             return "BACK"
 
         if self.btn_send.handle_event(event):
-            ok = self.process_function()
-            if ok:
+            if self.process_function():
                 self.stage = "function"
             return None
 
         if self.btn_generate.handle_event(event):
-            if not self.function:
-                self.error_message = "Primero envíe una función válida."
-            else:
-                ok = self.construct_tree_from_function()
-                if ok:
-                    self.stage = "tree"
+            if self.construct_tree_from_function():
+                self.stage = "tree"
             return None
 
         if self.btn_clear.handle_event(event):
             self.clear()
             return None
 
-        # Enter en el input también envía
         if self.func_input.handle_event(event):
-            ok = self.process_function()
-            if ok:
+            if self.process_function():
                 self.stage = "function"
+
         return None
 
-    # -----------------------------
+    # ------------------------------------
+    # CLEAR
+    # ------------------------------------
     def clear(self):
         self.function = []
         self._cycles_list = []
@@ -1390,11 +1337,10 @@ class FunctionToTreeMode:
         self.vertices_not_in_cycles = []
         self.tree_edges = []
         self.spine_edges = []
-        self.stage = "idle"
-        self.error_message = ""
-        self.func_input.text = ""
         self.vertex_pos = []
-
+        self.error_message = ""
+        self.stage = "idle"
+        self.func_input.text = ""
 
 
 # ==============================================================================
