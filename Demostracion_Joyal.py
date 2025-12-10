@@ -211,7 +211,7 @@ class InputField:
 
 class NSelectionScreen:
     def __init__(self):
-        self.title = "CONFIGURACIÓN INICIAL"
+        self.title = "DEMOSTRACIÓN MEDIANTE EL MÉTODO DE JOYAL"
         self.subtitle = "Fórmula de Cayley: n^(n-2) árboles etiquetados"
         
         # Campo de entrada
@@ -262,7 +262,7 @@ class NSelectionScreen:
         pygame.draw.rect(surface, COLORS['info'], header_rect, border_radius=20)
 
         # Texto dentro del nuevo encabezado
-        header_text = FONT_REGULAR.render("DEMOSTRACIÓN MEDIANTE EL MÉTODO DE JOYAL", True, COLORS['white'])
+        header_text = FONT_REGULAR.render("CONFIGURACIÓN INICIAL", True, COLORS['white'])
         surface.blit(header_text, (WIDTH//2 - header_text.get_width()//2,
                                 header_y + header_h//2 - header_text.get_height()//2))
 
