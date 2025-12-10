@@ -1242,10 +1242,12 @@ class FunctionToTreeMode:
 
         self._cycles_list = cycles
         ordered_vertices = []
-        # vértebra tipo B (camino completo invertido: fin → inicio)
-        self.vertices_in_cycles = vertebra[::-1]
-        self.vertices_not_in_cycles = [v for v in range(n) if v not in self.vertices_in_cycles]
-
+        for cyc in cycles:
+            for v in cyc:
+                if v not in ordered_vertices:
+                    ordered_vertices.append(v)
+        self.vertices_in_cycles = ordered_vertices
+        self.vertices_not_in_cycles = [i for i in range(n) if i not in set(self.vertices_in_cycles)]
 
         if self._debug:
             print("_detect_cycles_ordered:", [[x+1 for x in c] for c in cycles])
