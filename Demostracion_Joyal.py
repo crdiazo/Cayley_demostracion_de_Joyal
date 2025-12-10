@@ -952,15 +952,15 @@ class FunctionToTreeMode:
                                       WIDTH - (self.info_rect.right + 36), HEIGHT - 320)
 
         # Estado
-        self.function = []                 # lista 0-indexed
-        self._cycles_list = []             # lista de ciclos (0-indexed)
-        self.vertices_in_cycles = []       # flatten (orden preservado)
+        self.function = []                 
+        self._cycles_list = []             
+        self.vertices_in_cycles = []       
         self.vertices_not_in_cycles = []
-        self.tree_edges = []               # (a,b) 0-indexed
-        self.spine_edges = []              # (a,b) 0-indexed (vértebra)
+        self.tree_edges = []               
+        self.spine_edges = []              
         self.vertex_pos = []
         self.error_message = ""
-        self.stage = "idle"                # "idle", "function", "tree"
+        self.stage = "idle"                
         self._debug = False
 
     # -----------------------------
@@ -1242,12 +1242,10 @@ class FunctionToTreeMode:
 
         self._cycles_list = cycles
         ordered_vertices = []
-        for cyc in cycles:
-            for v in cyc:
-                if v not in ordered_vertices:
-                    ordered_vertices.append(v)
-        self.vertices_in_cycles = ordered_vertices
-        self.vertices_not_in_cycles = [i for i in range(n) if i not in set(self.vertices_in_cycles)]
+        # vértebra tipo B (camino completo invertido: fin → inicio)
+        self.vertices_in_cycles = vertebra[::-1]
+        self.vertices_not_in_cycles = [v for v in range(n) if v not in self.vertices_in_cycles]
+
 
         if self._debug:
             print("_detect_cycles_ordered:", [[x+1 for x in c] for c in cycles])
