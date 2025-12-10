@@ -1243,8 +1243,8 @@ class FunctionToTreeMode:
         self._cycles_list = cycles
         ordered_vertices = []
         for cyc in cycles:
-            for v in cyc:
-                if v not in ordered_vertices:
+            for v in reversed(cyc):
+                if v in ordered_vertices:
                     ordered_vertices.append(v)
         self.vertices_in_cycles = ordered_vertices
         self.vertices_not_in_cycles = [i for i in range(n) if i not in set(self.vertices_in_cycles)]
