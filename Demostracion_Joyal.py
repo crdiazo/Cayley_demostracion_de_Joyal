@@ -970,11 +970,23 @@ class FunctionToTreeMode:
         area = self.graph_rect
         cx = area.x + area.w // 2
         cy = area.y + area.h // 2
+
         margin = 70
-        R = min(area.w, area.h) // 2 - margin
-        R = max(R, 50)
-        if n > 30:
-            R = int(R * 0.8)
+        base_R = min(area.w, area.h) // 2 - margin
+        base_R = max(base_R, 50)
+
+        # --- Ajuste REAL dependiendo de n ---
+        if n <= 12:
+            R = base_R
+        elif n <= 20:
+            R = int(base_R * 1.25)
+        elif n <= 30:
+            R = int(base_R * 1.55)
+        else:
+            R = int(base_R * 1.9)
+
+        # límite para no salirse
+        R = min(R, min(area.w, area.h) // 2 - 10)
 
         self.vertex_pos = []
         for i in range(n):
@@ -982,8 +994,6 @@ class FunctionToTreeMode:
             x = int(cx + R * math.cos(ang))
             y = int(cy + R * math.sin(ang))
             self.vertex_pos.append((x, y))
-        if self._debug:
-            print("compute_positions R:", R)
 
     # -----------------------------
     # draw / UI
